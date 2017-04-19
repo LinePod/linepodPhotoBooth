@@ -1,4 +1,4 @@
-﻿using System.IO;
+﻿/*using System.IO;
 using System.Windows;
 using System.Windows.Media;
 using Microsoft.Kinect;
@@ -20,9 +20,6 @@ namespace Microsoft.Samples.Kinect.BackgroundRemovalBasics
 {
     
   
-    /// <summary>
-    /// Interaction logic for MainWindow.xaml
-    /// </summary>
     public partial class SkeletonWindow : Window
     {
 
@@ -298,7 +295,7 @@ namespace Microsoft.Samples.Kinect.BackgroundRemovalBasics
                 Console.ReadLine();*/
 
 
-
+/*
             }
         }
 
@@ -656,4 +653,4 @@ namespace Microsoft.Samples.Kinect.BackgroundRemovalBasics
             this.Close();
         }
     }
-}
+}*/

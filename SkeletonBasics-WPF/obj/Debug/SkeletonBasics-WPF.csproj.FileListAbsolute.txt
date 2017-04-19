@@ -43,3 +43,6 @@ Z:\Daten\Bachelorprojekt1617\Kinect\SkeletonBasics-WPF\obj\Debug\SkeletonBasics-
 Z:\Daten\Bachelorprojekt1617\Kinect\SkeletonBasics-WPF\obj\Debug\SkeletonBasics-WPF.g.resources
 Z:\Daten\Bachelorprojekt1617\Kinect\SkeletonBasics-WPF\obj\Debug\Microsoft.Samples.Kinect.SkeletonBasics.Properties.Resources.resources
 Z:\Daten\Bachelorprojekt1617\Kinect\SkeletonBasics-WPF\obj\Debug\SkeletonBasics-WPF.csproj.GenerateResource.Cache
+Z:\Daten\Bachelorprojekt1617\Kinect\linespacePhotoBooth\SkeletonBasics-WPF\bin\Debug\SkeletonBasics-WPF.exe.config
+Z:\Daten\Bachelorprojekt1617\Kinect\linespacePhotoBooth\SkeletonBasics-WPF\obj\Debug\SkeletonBasics-WPF.exe
+Z:\Daten\Bachelorprojekt1617\Kinect\linespacePhotoBooth\SkeletonBasics-WPF\obj\Debug\SkeletonBasics-WPF.pdb
