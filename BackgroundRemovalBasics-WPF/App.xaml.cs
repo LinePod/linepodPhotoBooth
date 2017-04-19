@@ -4,7 +4,7 @@
 // </copyright>
 //------------------------------------------------------------------------------
 
-namespace Microsoft.Samples.Kinect.BackgroundRemovalBasics
+namespace Hpi.Hci.Bachelorproject1617.PhotoBooth
 {
     using System.Windows;
 

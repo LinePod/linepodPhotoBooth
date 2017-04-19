@@ -1,4 +1,4 @@
-﻿<Application x:Class="Microsoft.Samples.Kinect.BackgroundRemovalBasics.App"
+﻿<Application x:Class="Hpi.Hci.Bachelorproject1617.PhotoBooth.App"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              StartupUri="MainWindow.xaml">
