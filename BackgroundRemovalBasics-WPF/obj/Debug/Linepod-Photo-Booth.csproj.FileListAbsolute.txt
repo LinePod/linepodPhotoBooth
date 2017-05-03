@@ -34,3 +34,4 @@ Z:\Daten\Bachelorprojekt1617\Kinect\linespacePhotoBooth\BackgroundRemovalBasics-
 Z:\Daten\Bachelorprojekt1617\Kinect\linespacePhotoBooth\BackgroundRemovalBasics-WPF\obj\Debug\Linepod-Photo-Booth.csproj.GenerateResource.Cache
 Z:\Daten\Bachelorprojekt1617\Kinect\linespacePhotoBooth\BackgroundRemovalBasics-WPF\obj\Debug\BackgroundRemovalBasics-WPF.exe
 Z:\Daten\Bachelorprojekt1617\Kinect\linespacePhotoBooth\BackgroundRemovalBasics-WPF\obj\Debug\BackgroundRemovalBasics-WPF.pdb
+Z:\Daten\Bachelorprojekt1617\Kinect\linespacePhotoBooth\BackgroundRemovalBasics-WPF\obj\Debug\Linepod-Photo-Booth.csprojResolveAssemblyReference.cache

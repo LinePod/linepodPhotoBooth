@@ -32,6 +32,12 @@ namespace Hpi.Hci.Bachelorproject1617.PhotoBooth
     using Svg;
     using System.Collections.Generic;
     using Svg.Pathing;
+    using Microsoft.Speech.Recognition;
+    using Microsoft.Speech.AudioFormat;
+    using System.Speech.Synthesis;
+
+
+
     /// <summary>
     /// Interaction logic for MainWindow.xaml
     /// </summary>
@@ -40,12 +46,26 @@ namespace Hpi.Hci.Bachelorproject1617.PhotoBooth
 
         //skeleton vars 
 
-
         private const int scale = 100;
         private const int svgWidth = 200;
         private const int svgHeight = 200;
         private static BluetoothClient thisDevice;
         private Boolean alreadyPaired = false;
+
+
+        //speech
+
+        private SpeechRecognitionEngine speechEngine;
+        
+        RecognizerInfo ri;
+
+        SpeechSynthesizer reader;
+
+
+        //timestamps
+        private DateTime lastSkeletonTimeStamp;
+
+
         /// <summary>
         /// Width of output drawing
         /// </summary>
@@ -175,11 +195,28 @@ namespace Hpi.Hci.Bachelorproject1617.PhotoBooth
             this.Image.Source = this.imageSource;
 
             //Bluetooth stuff here 
-            thisDevice = new BluetoothClient();
-            BluetoothComponent bluetoothComponent = new BluetoothComponent(thisDevice);
-            bluetoothComponent.DiscoverDevicesProgress += bluetoothComponent_DiscoverDevicesProgress;
-            bluetoothComponent.DiscoverDevicesComplete += bluetoothComponent_DiscoverDevicesComplete;
-            bluetoothComponent.DiscoverDevicesAsync(8, true, true, true, false, thisDevice);
+            if (BluetoothRadio.PrimaryRadio.Mode == RadioMode.Discoverable)
+            {
+                thisDevice = new BluetoothClient();
+                BluetoothComponent bluetoothComponent = new BluetoothComponent(thisDevice);
+                bluetoothComponent.DiscoverDevicesProgress += bluetoothComponent_DiscoverDevicesProgress;
+                bluetoothComponent.DiscoverDevicesComplete += bluetoothComponent_DiscoverDevicesComplete;
+                bluetoothComponent.DiscoverDevicesAsync(8, true, true, true, false, thisDevice);
+                Console.WriteLine("Connectable");
+
+            }
+            else
+            {
+                MessageBox.Show("Bluetooth adapter turned off");
+                
+            }
+            
+            reader = new SpeechSynthesizer();
+            foreach (InstalledVoice voice in reader.GetInstalledVoices()){
+                Console.WriteLine(voice.VoiceInfo.Description + " " + voice.VoiceInfo.Name);
+            }
+            reader.SelectVoice("Microsoft Zira Desktop");
+            lastSkeletonTimeStamp = DateTime.Now;
         }
 
         /// <summary>
@@ -234,10 +271,21 @@ namespace Hpi.Hci.Bachelorproject1617.PhotoBooth
             if (null != this.sensor)
             {
                 this.sensor.Stop();
+                this.sensor.AudioSource.Stop();
+                this.sensor = null;
             }
+
+
+            if (null != this.speechEngine)
+            {
+                this.speechEngine.SpeechRecognized -= SpeechRecognized;
+                this.speechEngine.SpeechRecognitionRejected -= SpeechRejected;
+                this.speechEngine.RecognizeAsyncStop();
+            }      
 
         }
 
+        
         /// <summary>
         /// Event handler for Kinect sensor's DepthFrameReady event
         /// </summary>
@@ -275,11 +323,17 @@ namespace Hpi.Hci.Bachelorproject1617.PhotoBooth
 
                     using (var skeletonFrame = e.OpenSkeletonFrame())
                     {
+                        
                         if (null != skeletonFrame)
                         {
+                            
                             skeletonFrame.CopySkeletonDataTo(this.skeletons);
                             this.backgroundRemovedColorStream.ProcessSkeleton(this.skeletons, skeletonFrame.Timestamp);
+
                         }
+
+                        
+                    
                     }
 
                     this.ChooseSkeleton();
@@ -317,9 +371,7 @@ namespace Hpi.Hci.Bachelorproject1617.PhotoBooth
 
                     if (pictureTaken)
                     {
-
-
-                        
+       
                         for (int i = 0; i < pixelData.Length; i += BackgroundRemovedColorFrame.BytesPerPixel)
                         {
 
@@ -327,11 +379,9 @@ namespace Hpi.Hci.Bachelorproject1617.PhotoBooth
                             pixelData[i + 1] = 255;
                             pixelData[i + 2] = 0;
 
-
                         }
 
-                        
-
+                     
                     }
 
                     // Write the pixel data into our bitmap
@@ -340,51 +390,116 @@ namespace Hpi.Hci.Bachelorproject1617.PhotoBooth
                         pixelData,
                         this.foregroundBitmap.PixelWidth * sizeof(int),
                         0);
-                    //backgroundRemovedFrame.GetRawPixelData(),
+
+
                     if (pictureTaken)
                     {
-
-                        int colorWidth = this.foregroundBitmap.PixelWidth;
-                        int colorHeight = this.foregroundBitmap.PixelHeight;
-
-                        // create a render target that we'll render our controls to
-                        var renderBitmap = new RenderTargetBitmap(colorWidth, colorHeight, 96.0, 96.0, PixelFormats.Pbgra32);
-
-                        var dv = new DrawingVisual();
-                        using (var dc = dv.RenderOpen())
-                        {
-                            // render the backdrop
-                            var backdropBrush = new VisualBrush(Backdrop);
-                            dc.DrawRectangle(backdropBrush, null, new Rect(new Point(), new Size(colorWidth, colorHeight)));
-
-                            // render the color image masked out by players
-                            var colorBrush = new VisualBrush(MaskedColor);
-                            dc.DrawRectangle(colorBrush, null, new Rect(new Point(), new Size(colorWidth, colorHeight)));
-                        }
-
-                        renderBitmap.Render(dv);
-
-                        // create a bmp bitmap encoder which knows how to save a .bmpfile
-                        BitmapEncoder encoder = new BmpBitmapEncoder();
-
-                        // create frame from the writable bitmap and add to encoder
-                        encoder.Frames.Add(BitmapFrame.Create(renderBitmap));
-
-                        var time = DateTime.Now.ToString("hh'-'mm'-'ss", CultureInfo.CurrentUICulture.DateTimeFormat);
-
-                        //var myPhotos = Environment.GetFolderPath(Environment.SpecialFolder.MyPictures);
-
-                        //var path = Path.Combine(myPhotos, "KinectSnapshot-" + time + ".png");
-                        var path = "Z:\\Daten\\Bachelorprojekt1617\\Kinect\\potrace-1.14.win64\\result.bmp";
-                        // write the new file to disk
-                        
-                        //Bitmap bmp = BmpFromByteArray(pixelData, backgroundRemovedFrame.Width, backgroundRemovedFrame.Height);
-                        GenerateSVG(path);
-                        pictureTaken = false;
+                        PrintSVGOutlines();
+                       
                     }
 
                 }
             }
+        }
+
+        private void PrintSVGOutlines()
+        {
+            int colorWidth = this.foregroundBitmap.PixelWidth;
+            int colorHeight = this.foregroundBitmap.PixelHeight;
+
+            // create a render target that we'll render our controls to
+            var renderBitmap = new RenderTargetBitmap(colorWidth, colorHeight, 96.0, 96.0, PixelFormats.Pbgra32);
+
+            var dv = new DrawingVisual();
+            using (var dc = dv.RenderOpen())
+            {
+                // render the backdrop
+                var backdropBrush = new VisualBrush(Backdrop);
+                dc.DrawRectangle(backdropBrush, null, new Rect(new Point(), new Size(colorWidth, colorHeight)));
+
+                // render the color image masked out by players
+                var colorBrush = new VisualBrush(MaskedColor);
+                dc.DrawRectangle(colorBrush, null, new Rect(new Point(), new Size(colorWidth, colorHeight)));
+            }
+
+            renderBitmap.Render(dv);
+
+            // create a bitmap encoder which knows how to save a .bmpfile
+            BitmapEncoder encoder = new BmpBitmapEncoder();
+
+            // create frame from the writable bitmap and add to encoder
+            encoder.Frames.Add(BitmapFrame.Create(renderBitmap));
+
+
+
+            var path = "Z:\\Daten\\Bachelorprojekt1617\\Kinect\\potrace-1.14.win64\\result.bmp";
+            // write the new file to disk
+
+            try
+            {
+                using (var fs = new FileStream(path, FileMode.Create))
+                {
+                    encoder.Save(fs);
+                }
+
+            }
+            catch (IOException)
+            {
+            }
+
+            //Bitmap bmp = BmpFromByteArray(pixelData, backgroundRemovedFrame.Width, backgroundRemovedFrame.Height);
+            GenerateOutlineSVG(path);
+            pictureTaken = false;
+
+        }
+
+
+        private static RecognizerInfo GetKinectRecognizer()
+        {
+            foreach (RecognizerInfo recognizer in SpeechRecognitionEngine.InstalledRecognizers())
+            {
+                string value;
+                recognizer.AdditionalInfo.TryGetValue("Kinect", out value);
+                if ("True".Equals(value, StringComparison.OrdinalIgnoreCase))
+                { //&& "en-US".Equals(recognizer.Culture.Name, StringComparison.OrdinalIgnoreCase))
+                    return recognizer;
+                }
+            }
+
+            return null;
+        }
+
+
+
+        private void SpeechRecognized(object sender, SpeechRecognizedEventArgs e)
+          {
+            // Speech utterance confidence below which we treat speech as if it hadn't been heard
+            const double ConfidenceThreshold = 0.3;
+
+            if (e.Result.Confidence >= ConfidenceThreshold)
+            {
+                String result = e.Result.Semantics.Value.ToString();
+                Console.WriteLine(result);
+              switch(result)
+              {
+                  case "BOTH":
+                      ButtonPrintBoth(null,null);
+                      break;
+                  case "OUTLINES":
+                      ButtonPrintOutlines(null, null);
+                      break;
+                  case "SKELETON":
+                      ButtonPrintSkeleton(null, null);
+                      break;
+                  
+              }
+            }
+          }
+
+
+        private void SpeechRejected(object sender, SpeechRecognitionRejectedEventArgs e)
+        {
+            Debug.WriteLine("Speech rejected");
         }
 
 
@@ -407,12 +522,12 @@ namespace Hpi.Hci.Bachelorproject1617.PhotoBooth
             return bmp;
         }
 
-        private String GenerateSVG(String bmpPath)
+        private String GenerateOutlineSVG(String bmpPath)
         {
             Process potrace = new Process {
                 StartInfo = new ProcessStartInfo {
                 FileName = "Z:\\Daten\\Bachelorprojekt1617\\Kinect\\potrace-1.14.win64\\potrace.exe",
-                Arguments = bmpPath + " -s -u 1 ", //SVG // if svg should be saved: -o Z:\\Daten\\Bachelorprojekt1617\\Kinect\\potrace-1.14.win64\\result.svg
+                Arguments = bmpPath + " -s -u 1 -o Z:\\Daten\\Bachelorprojekt1617\\Kinect\\potrace-1.14.win64\\result.svg", //SVG // if svg should be saved: -o Z:\\Daten\\Bachelorprojekt1617\\Kinect\\potrace-1.14.win64\\result.svg --fillcolor #FFFFFF 
                 RedirectStandardInput = true,
                 RedirectStandardOutput = true,
                 RedirectStandardError = true,
@@ -444,7 +559,7 @@ namespace Hpi.Hci.Bachelorproject1617.PhotoBooth
             potrace.StandardInput.WriteLine(); //Without this line the input to Potrace won't go through.
             potrace.WaitForExit();
             String svgString = File.ReadAllText("Z:\\Daten\\Bachelorprojekt1617\\Kinect\\potrace-1.14.win64\\result.svg");
-            Console.WriteLine("SVG Result " + svgString);
+            Console.WriteLine("SVG Outline Result " + svgString);
             return svgString;
         }
 
@@ -561,6 +676,9 @@ namespace Hpi.Hci.Bachelorproject1617.PhotoBooth
                         args.NewSensor.DepthStream.Range = DepthRange.Default;
                         args.NewSensor.SkeletonStream.EnableTrackingInNearRange = false;
                     }
+                    InitializeSpeechRecognizer();
+                    
+                    
 
                 }
                 catch (InvalidOperationException)
@@ -568,6 +686,33 @@ namespace Hpi.Hci.Bachelorproject1617.PhotoBooth
                     // KinectSensor might enter an invalid state while enabling/disabling streams or stream features.
                     // E.g.: sensor might be abruptly unplugged.
                 }
+            }
+        }
+
+        private void InitializeSpeechRecognizer()
+        {
+            ri = GetKinectRecognizer();
+            if (null != ri)
+            {
+                this.speechEngine = new SpeechRecognitionEngine(ri.Id);
+                var directions = new Choices();
+                directions.Add(new SemanticResultValue("print outlines", "OUTLINES"));
+                directions.Add(new SemanticResultValue("print skeleton", "SKELETON"));
+                directions.Add(new SemanticResultValue("print both", "BOTH"));
+                directions.Add(new SemanticResultValue("take picture", "BOTH"));
+
+                var gb = new GrammarBuilder { Culture = ri.Culture };
+                gb.Append(directions);
+
+                var g = new Grammar(gb);
+                speechEngine.LoadGrammar(g);
+                speechEngine.SpeechRecognized += SpeechRecognized;
+                speechEngine.SpeechRecognitionRejected += SpeechRejected;
+
+                speechEngine.SetInputToAudioStream(
+                    sensor.AudioSource.Start(), new SpeechAudioFormatInfo(EncodingFormat.Pcm, 16000, 16, 1, 32000, 2, null));
+
+                speechEngine.RecognizeAsync(RecognizeMode.Multiple);
             }
         }
 
@@ -580,6 +725,7 @@ namespace Hpi.Hci.Bachelorproject1617.PhotoBooth
         private void ButtonPrintBoth(object sender, RoutedEventArgs e)
         {
             ButtonPrintOutlines(null,null);
+            
             ButtonPrintSkeleton(null, null);
 
             
@@ -591,8 +737,16 @@ namespace Hpi.Hci.Bachelorproject1617.PhotoBooth
             {
                 return;
             }
+            bool noSkelTracked = CheckIfPersonInImage();
+            
+            if (noSkelTracked)
+            {
+                reader.Speak("No person identified");
+                return;
+            }
             Console.WriteLine("Screenshot");
-
+            reader.Speak("Printing outlines");
+            
             pictureTaken = true;
 
         }
@@ -600,21 +754,46 @@ namespace Hpi.Hci.Bachelorproject1617.PhotoBooth
 
         private void ButtonPrintSkeleton(object sender, RoutedEventArgs e)
         {
-            if (this.sensor.SkeletonStream.IsEnabled)
+            if (this.sensor.SkeletonStream.IsEnabled )
             {
+                bool noSkelTracked = CheckIfPersonInImage();
+
+                if (noSkelTracked)
+                {
+                    reader.Speak("No person identified");
+                    return;
+                }
 
                 foreach (Skeleton skel in skeletons)
                 {
                     if (skel.TrackingState == SkeletonTrackingState.Tracked)
                     {
-                        Console.WriteLine("new skeleton" + skel.TrackingId.ToString());
-                        String svgString = this.BuildSvg(skel);
+                        String svgString = this.GenerateSkeletonSVG(skel);
                         this.SendSvg(svgString);
                     }
                 }
                 Console.WriteLine("all skeletons done");
+                reader.Speak("Printing skeleton");
+                
+                
+                
             }
 
+        }
+
+
+        private bool CheckIfPersonInImage()
+        {
+            bool noSkelTracked = true;
+            
+            foreach (Skeleton skel in skeletons)
+            {
+                if (skel.TrackingState != SkeletonTrackingState.NotTracked)
+                {
+                    noSkelTracked = false;
+                }
+            }
+            return noSkelTracked;
         }
         
         /// <summary>
@@ -751,10 +930,6 @@ namespace Hpi.Hci.Bachelorproject1617.PhotoBooth
                 // client is connected now :)
                 Console.WriteLine(thisDevice.Connected);
 
-
-
-
-
             }
         }
 
@@ -777,7 +952,7 @@ namespace Hpi.Hci.Bachelorproject1617.PhotoBooth
                     {
                         skeletons = new Skeleton[skeletonFrame.SkeletonArrayLength];
                         skeletonFrame.CopySkeletonDataTo(skeletons);
-                    }
+                    } 
                 }
 
                 using (DrawingContext dc = this.drawingGroup.Open())
@@ -785,6 +960,7 @@ namespace Hpi.Hci.Bachelorproject1617.PhotoBooth
                     // Draw a transparent background to set the render size
                     dc.DrawRectangle(Brushes.Black, null, new Rect(0.0, 0.0, RenderWidth, RenderHeight));
 
+                    bool noSkelTracked = true;
                     if (skeletons.Length != 0)
                     {
                         foreach (Skeleton skel in skeletons)
@@ -794,7 +970,7 @@ namespace Hpi.Hci.Bachelorproject1617.PhotoBooth
                             if (skel.TrackingState == SkeletonTrackingState.Tracked)
                             {
                                 this.DrawBonesAndJoints(skel, dc);
-
+                                noSkelTracked = false;
                             }
                             else if (skel.TrackingState == SkeletonTrackingState.PositionOnly)
                             {
@@ -804,17 +980,34 @@ namespace Hpi.Hci.Bachelorproject1617.PhotoBooth
                                 this.SkeletonPointToScreen(skel.Position),
                                 BodyCenterThickness,
                                 BodyCenterThickness);
+                                noSkelTracked = false;
                             }
                         }
                     }
 
+                    if (noSkelTracked)
+                    {
+                        if ((DateTime.Now - this.lastSkeletonTimeStamp).TotalMilliseconds > 10000)
+                        {
+                            reader.Speak("No person identified.");
+                            this.lastSkeletonTimeStamp = DateTime.Now;
+                        }
+                    }
+                    else
+                    {
+                        this.lastSkeletonTimeStamp = DateTime.Now;
+                    }
+                    
                     // prevent drawing outside of our render area
                     this.drawingGroup.ClipGeometry = new RectangleGeometry(new Rect(0.0, 0.0, RenderWidth, RenderHeight));
                 }
+
+                
             }
+
         }
 
-        private String BuildSvg(Skeleton skel)
+        private String GenerateSkeletonSVG(Skeleton skel)
         {
             SvgDocument doc = new SvgDocument()
             {
@@ -915,6 +1108,7 @@ namespace Hpi.Hci.Bachelorproject1617.PhotoBooth
                 CenterY = new Svg.SvgUnit(TranslatePosition(head.Position.Y)),
                 StrokeWidth = 1
             };
+            //add the neck
             path.PathData.Add(new SvgMoveToSegment(new PointF(TranslatePosition((float)intersectingPoint.X), TranslatePosition((float)intersectingPoint.Y))));
             path.PathData.Add(new SvgLineSegment(new PointF(TranslatePosition(shoulderCenter.Position.X), TranslatePosition(shoulderCenter.Position.Y)), new PointF(TranslatePosition((float)intersectingPoint.X), TranslatePosition((float)intersectingPoint.Y))));
             doc.Children.Add(path);
@@ -923,7 +1117,7 @@ namespace Hpi.Hci.Bachelorproject1617.PhotoBooth
             doc.Children.Add(headCircle);
             var stream = new MemoryStream();
             doc.Write(stream);
-            Console.WriteLine(Encoding.UTF8.GetString(stream.GetBuffer()));
+            Console.WriteLine("SVG from skeleton " + Encoding.UTF8.GetString(stream.GetBuffer()));
             return Encoding.UTF8.GetString(stream.GetBuffer());
 
         }
@@ -1013,7 +1207,9 @@ namespace Hpi.Hci.Bachelorproject1617.PhotoBooth
         {
             // Convert point to depth space.  
             // We are not using depth directly, but we do want the points in our 640x480 output resolution.
+            
             DepthImagePoint depthPoint = this.sensor.CoordinateMapper.MapSkeletonPointToDepthPoint(skelpoint, DepthImageFormat.Resolution640x480Fps30);
+
             return new Point(depthPoint.X, depthPoint.Y);
         }
 
