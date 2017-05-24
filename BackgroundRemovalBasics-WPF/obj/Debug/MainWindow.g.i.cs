@@ -148,7 +148,7 @@ namespace Hpi.Hci.Bachelorproject1617.PhotoBooth {
                 return;
             }
             _contentLoaded = true;
-            System.Uri resourceLocater = new System.Uri("/BackgroundRemovalBasics-WPF;component/mainwindow.xaml", System.UriKind.Relative);
+            System.Uri resourceLocater = new System.Uri("/PhotoBooth;component/mainwindow.xaml", System.UriKind.Relative);
             
             #line 1 "..\..\MainWindow.xaml"
             System.Windows.Application.LoadComponent(this, resourceLocater);
@@ -193,7 +193,7 @@ namespace Hpi.Hci.Bachelorproject1617.PhotoBooth {
             this.buttonPrintSkel = ((System.Windows.Controls.Button)(target));
             
             #line 110 "..\..\MainWindow.xaml"
-            this.buttonPrintSkel.Click += new System.Windows.RoutedEventHandler(this.ButtonPrintSkeleton);
+            this.buttonPrintSkel.Click += new System.Windows.RoutedEventHandler(this.TakePictureSkeleton);
             
             #line default
             #line hidden
@@ -202,7 +202,7 @@ namespace Hpi.Hci.Bachelorproject1617.PhotoBooth {
             this.buttonPrintOutlines = ((System.Windows.Controls.Button)(target));
             
             #line 111 "..\..\MainWindow.xaml"
-            this.buttonPrintOutlines.Click += new System.Windows.RoutedEventHandler(this.ButtonPrintOutlines);
+            this.buttonPrintOutlines.Click += new System.Windows.RoutedEventHandler(this.TakePictureOutlines);
             
             #line default
             #line hidden

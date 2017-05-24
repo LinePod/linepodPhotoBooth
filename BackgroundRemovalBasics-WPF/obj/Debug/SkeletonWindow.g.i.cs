@@ -51,7 +51,7 @@ namespace Hpi.Hci.Bachelorproject1617.PhotoBooth {
                 return;
             }
             _contentLoaded = true;
-            System.Uri resourceLocater = new System.Uri("/BackgroundRemovalBasics-WPF;component/skeletonwindow.xaml", System.UriKind.Relative);
+            System.Uri resourceLocater = new System.Uri("/PhotoBooth;component/skeletonwindow.xaml", System.UriKind.Relative);
             
             #line 1 "..\..\SkeletonWindow.xaml"
             System.Windows.Application.LoadComponent(this, resourceLocater);

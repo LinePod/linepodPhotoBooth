@@ -1,9 +1,4 @@
-﻿//------------------------------------------------------------------------------
-// <copyright file="MainWindow.xaml.cs" company="Microsoft">
-//     Copyright (c) Microsoft Corporation.  All rights reserved.
-// </copyright>
-//------------------------------------------------------------------------------
-
+﻿
 namespace Hpi.Hci.Bachelorproject1617.PhotoBooth
 {
     using System;
@@ -35,6 +30,9 @@ namespace Hpi.Hci.Bachelorproject1617.PhotoBooth
     using Microsoft.Speech.Recognition;
     using Microsoft.Speech.AudioFormat;
     using System.Speech.Synthesis;
+    using bbv;
+    using HPI.HCI.Bachelorproject1617.PhotoBooth;
+    using System.Timers;
 
 
 
@@ -53,6 +51,8 @@ namespace Hpi.Hci.Bachelorproject1617.PhotoBooth
         private Boolean alreadyPaired = false;
 
 
+        String svgImage;
+
         //speech
 
         private SpeechRecognitionEngine speechEngine;
@@ -61,9 +61,12 @@ namespace Hpi.Hci.Bachelorproject1617.PhotoBooth
 
         SpeechSynthesizer reader;
 
+        SpeechInteraction speechInteraction;
 
         //timestamps
         private DateTime lastSkeletonTimeStamp;
+
+        Timer timer;
 
 
         /// <summary>
@@ -193,6 +196,16 @@ namespace Hpi.Hci.Bachelorproject1617.PhotoBooth
 
             // Display the drawing using our image control
             this.Image.Source = this.imageSource;
+            
+
+            //speech-in and -out
+            reader = new SpeechSynthesizer();
+            foreach (InstalledVoice voice in reader.GetInstalledVoices())
+            {
+                Console.WriteLine(voice.VoiceInfo.Description + " " + voice.VoiceInfo.Name);
+            }
+            reader.SelectVoice("Microsoft Zira Desktop");
+            this.speechInteraction = new SpeechInteraction(this, reader);
 
             //Bluetooth stuff here 
             if (BluetoothRadio.PrimaryRadio.Mode == RadioMode.Discoverable)
@@ -207,17 +220,23 @@ namespace Hpi.Hci.Bachelorproject1617.PhotoBooth
             }
             else
             {
-                MessageBox.Show("Bluetooth adapter turned off");
+                reader.Speak("Please turn on your Bluetooth adapter");
                 
             }
-            
-            reader = new SpeechSynthesizer();
-            foreach (InstalledVoice voice in reader.GetInstalledVoices()){
-                Console.WriteLine(voice.VoiceInfo.Description + " " + voice.VoiceInfo.Name);
-            }
-            reader.SelectVoice("Microsoft Zira Desktop");
+
+            timer = new Timer(20000);
+            timer.Elapsed += new ElapsedEventHandler(HandleTimer);
+            timer.Start();
+
             lastSkeletonTimeStamp = DateTime.Now;
         }
+
+        private void HandleTimer(object source, ElapsedEventArgs evt)
+        {
+           speechInteraction.fsm.Fire(SpeechInteraction.Command.Repeat);
+        }
+
+        
 
         /// <summary>
         /// Finalizes an instance of the MainWindow class.
@@ -402,6 +421,8 @@ namespace Hpi.Hci.Bachelorproject1617.PhotoBooth
             }
         }
 
+
+
         private void PrintSVGOutlines()
         {
             int colorWidth = this.foregroundBitmap.PixelWidth;
@@ -486,10 +507,20 @@ namespace Hpi.Hci.Bachelorproject1617.PhotoBooth
                       ButtonPrintBoth(null,null);
                       break;
                   case "OUTLINES":
-                      ButtonPrintOutlines(null, null);
+                      
+                      speechInteraction.fsm.Fire(SpeechInteraction.Command.Outlines);
+                      
                       break;
                   case "SKELETON":
-                      ButtonPrintSkeleton(null, null);
+                      speechInteraction.fsm.Fire(SpeechInteraction.Command.Skeleton);
+                      
+                      break;
+                  case "BACK":
+                      speechInteraction.fsm.Fire(SpeechInteraction.Command.Back);
+                      
+                      break;
+                  case "PRINT":
+                      speechInteraction.fsm.Fire(SpeechInteraction.Command.Print);
                       break;
                   
               }
@@ -560,6 +591,8 @@ namespace Hpi.Hci.Bachelorproject1617.PhotoBooth
             potrace.WaitForExit();
             String svgString = File.ReadAllText("Z:\\Daten\\Bachelorprojekt1617\\Kinect\\potrace-1.14.win64\\result.svg");
             Console.WriteLine("SVG Outline Result " + svgString);
+            //this.SendSvg(svgString);
+            svgImage = svgString;
             return svgString;
         }
 
@@ -696,10 +729,12 @@ namespace Hpi.Hci.Bachelorproject1617.PhotoBooth
             {
                 this.speechEngine = new SpeechRecognitionEngine(ri.Id);
                 var directions = new Choices();
-                directions.Add(new SemanticResultValue("print outlines", "OUTLINES"));
-                directions.Add(new SemanticResultValue("print skeleton", "SKELETON"));
-                directions.Add(new SemanticResultValue("print both", "BOTH"));
-                directions.Add(new SemanticResultValue("take picture", "BOTH"));
+                directions.Add(new SemanticResultValue("outlines", "OUTLINES"));
+                directions.Add(new SemanticResultValue("skeleton", "SKELETON"));
+                //directions.Add(new SemanticResultValue("print both", "BOTH"));
+                directions.Add(new SemanticResultValue("take picture", "OUTLINES"));
+                directions.Add(new SemanticResultValue("back", "BACK"));
+                directions.Add(new SemanticResultValue("print", "PRINT"));
 
                 var gb = new GrammarBuilder { Culture = ri.Culture };
                 gb.Append(directions);
@@ -713,6 +748,7 @@ namespace Hpi.Hci.Bachelorproject1617.PhotoBooth
                     sensor.AudioSource.Start(), new SpeechAudioFormatInfo(EncodingFormat.Pcm, 16000, 16, 1, 32000, 2, null));
 
                 speechEngine.RecognizeAsync(RecognizeMode.Multiple);
+                
             }
         }
 
@@ -724,14 +760,14 @@ namespace Hpi.Hci.Bachelorproject1617.PhotoBooth
         /// <param name="e">event arguments</param>
         private void ButtonPrintBoth(object sender, RoutedEventArgs e)
         {
-            ButtonPrintOutlines(null,null);
+            TakePictureOutlines(null,null);
             
-            ButtonPrintSkeleton(null, null);
+            TakePictureSkeleton(null, null);
 
             
         }
 
-        private void ButtonPrintOutlines(object sender, RoutedEventArgs e)
+        public void TakePictureOutlines(object sender, RoutedEventArgs e)
         {
             if (null == this.sensorChooser || null == this.sensorChooser.Kinect)
             {
@@ -745,14 +781,15 @@ namespace Hpi.Hci.Bachelorproject1617.PhotoBooth
                 return;
             }
             Console.WriteLine("Screenshot");
-            reader.Speak("Printing outlines");
+            //reader.Speak("Printing outlines");
             
             pictureTaken = true;
+            //speechInteraction.fsm.Fire(SpeechInteraction.Command.Outlines);
 
         }
 
 
-        private void ButtonPrintSkeleton(object sender, RoutedEventArgs e)
+        public void TakePictureSkeleton(object sender, RoutedEventArgs e)
         {
             if (this.sensor.SkeletonStream.IsEnabled )
             {
@@ -769,11 +806,12 @@ namespace Hpi.Hci.Bachelorproject1617.PhotoBooth
                     if (skel.TrackingState == SkeletonTrackingState.Tracked)
                     {
                         String svgString = this.GenerateSkeletonSVG(skel);
-                        this.SendSvg(svgString);
+                        svgImage = svgString;
+                        //this.SendSvg(svgString);
                     }
                 }
                 Console.WriteLine("all skeletons done");
-                reader.Speak("Printing skeleton");
+                //reader.Speak("Skeleton is being printed");
                 
                 
                 
@@ -882,13 +920,13 @@ namespace Hpi.Hci.Bachelorproject1617.PhotoBooth
             foreach (BluetoothDeviceInfo device in e.Devices)
             {
                 Debug.WriteLine(device.DeviceName + " is a " + device.ClassOfDevice.MajorDevice.ToString());
-                if (device.DeviceName.Contains("raspberry") && !alreadyPaired)
+                if (device.DeviceName.Contains("raspberrypi") && !alreadyPaired) //osboxes vs raspberry
                 {
                     bool paired = BluetoothSecurity.PairRequest(device.DeviceAddress, "123456");
                     if (paired)
                     {
                         alreadyPaired = true;
-                        MessageBox.Show("Paired!");
+                        Console.WriteLine("Paired!");
                         thisDevice.BeginConnect(device.DeviceAddress, BluetoothService.SerialPort, new AsyncCallback(Connect), device);
 
                     }
@@ -906,10 +944,22 @@ namespace Hpi.Hci.Bachelorproject1617.PhotoBooth
             {
                 Debug.WriteLine("Connected");
                 NetworkStream stream = thisDevice.GetStream();
+                
                 if (stream.CanWrite)
                 {
-
-                    stream.Write(Encoding.UTF8.GetBytes(svgString), 0, Encoding.UTF8.GetBytes(svgString).Length);
+                    Guid uuid = System.Guid.NewGuid();
+                    int length = Encoding.UTF8.GetBytes(svgString).Length;
+                    byte[] rv = new byte[36 + 4 + length];
+                    Console.WriteLine("length of svg is " + length);
+                    System.Buffer.BlockCopy(Encoding.ASCII.GetBytes(uuid.ToString()), 0, rv, 0, 36);
+                    byte[] intBytes = BitConverter.GetBytes(length);
+                    if (BitConverter.IsLittleEndian)
+                        Array.Reverse(intBytes);
+                    byte[] result = intBytes;
+                    System.Buffer.BlockCopy(result, 0, rv, 36, 4);
+                    System.Buffer.BlockCopy(Encoding.UTF8.GetBytes(svgString), 0, rv, 36 + 4, length);
+                    stream.Write(rv, 0, 36 + 4 + length);
+                    Console.WriteLine(rv.ToString());
 
                 }
             }
@@ -987,15 +1037,15 @@ namespace Hpi.Hci.Bachelorproject1617.PhotoBooth
 
                     if (noSkelTracked)
                     {
-                        if ((DateTime.Now - this.lastSkeletonTimeStamp).TotalMilliseconds > 10000)
+                        if ((DateTime.Now - this.lastSkeletonTimeStamp).TotalMilliseconds > 1000)
                         {
-                            reader.Speak("No person identified.");
-                            this.lastSkeletonTimeStamp = DateTime.Now;
+                            speechInteraction.fsm.Fire(SpeechInteraction.Command.FramesNotReady);
+                            lastSkeletonTimeStamp = DateTime.Now;
                         }
                     }
                     else
                     {
-                        this.lastSkeletonTimeStamp = DateTime.Now;
+                        speechInteraction.fsm.Fire(SpeechInteraction.Command.FramesReady);
                     }
                     
                     // prevent drawing outside of our render area
@@ -1279,10 +1329,11 @@ namespace Hpi.Hci.Bachelorproject1617.PhotoBooth
         {
             return;
         }
+
        
 
     }
 
 
-
+   
 }

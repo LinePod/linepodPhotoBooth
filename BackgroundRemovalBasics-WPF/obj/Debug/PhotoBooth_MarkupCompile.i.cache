@@ -1,18 +1,18 @@
-﻿BackgroundRemovalBasics-WPF
+﻿PhotoBooth
 
 
 winexe
 C#
 .cs
 Z:\Daten\Bachelorprojekt1617\Kinect\linespacePhotoBooth\BackgroundRemovalBasics-WPF\obj\Debug\
-HPI.HCI.Bachelorproject1617.PhotoBooth
+Hpi.Hci.Bachelorproject1617.PhotoBooth
 none
 false
 DEBUG;TRACE
 Z:\Daten\Bachelorprojekt1617\Kinect\linespacePhotoBooth\BackgroundRemovalBasics-WPF\App.xaml
 2-2095838416
 21568147448
-81565568645
+8-753431122
 281322296082
 MainWindow.xaml;SkeletonWindow.xaml;
 
