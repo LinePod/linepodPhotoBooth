@@ -61,6 +61,15 @@ namespace Hpi.Hci.Bachelorproject1617.PhotoBooth.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized resource of type System.IO.UnmanagedMemoryStream similar to System.IO.MemoryStream.
+        /// </summary>
+        internal static System.IO.UnmanagedMemoryStream camera_shutter_sound {
+            get {
+                return ResourceManager.GetStream("camera_shutter_sound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Connect a device first!.
         /// </summary>
         internal static string ConnectDeviceFirst {

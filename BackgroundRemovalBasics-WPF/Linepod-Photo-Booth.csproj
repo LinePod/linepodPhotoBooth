@@ -100,6 +100,8 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Class1.cs" />
+    <Compile Include="Class2.cs" />
     <Compile Include="SpeechInteraction.cs" />
     <Compile Include="SkeletonWindow.xaml.cs">
       <DependentUpon>SkeletonWindow.xaml</DependentUpon>
@@ -174,6 +176,7 @@
       <Link>KinectBackgroundRemoval180_64.dll</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <None Include="Properties\camera_shutter_sound.wav" />
     <Resource Include="Images\empty.jpg" />
   </ItemGroup>
   <ItemGroup />

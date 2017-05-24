@@ -33,12 +33,14 @@ namespace Hpi.Hci.Bachelorproject1617.PhotoBooth
     using bbv;
     using HPI.HCI.Bachelorproject1617.PhotoBooth;
     using System.Timers;
+    using System.Linq;
 
 
 
     /// <summary>
     /// Interaction logic for MainWindow.xaml
     /// </summary>
+    /// 
     public partial class MainWindow : Window, IDisposable
     {
 
@@ -49,17 +51,17 @@ namespace Hpi.Hci.Bachelorproject1617.PhotoBooth
         private const int svgHeight = 200;
         private static BluetoothClient thisDevice;
         private Boolean alreadyPaired = false;
+        BluetoothDeviceInfo device;
 
-
-        String svgImage;
+        public String svgImage;
 
         //speech
 
-        private SpeechRecognitionEngine speechEngine;
+        public SpeechRecognitionEngine speechEngine;
         
         RecognizerInfo ri;
 
-        SpeechSynthesizer reader;
+        static SpeechSynthesizer reader;
 
         SpeechInteraction speechInteraction;
 
@@ -205,8 +207,8 @@ namespace Hpi.Hci.Bachelorproject1617.PhotoBooth
                 Console.WriteLine(voice.VoiceInfo.Description + " " + voice.VoiceInfo.Name);
             }
             reader.SelectVoice("Microsoft Zira Desktop");
-            this.speechInteraction = new SpeechInteraction(this, reader);
-
+            speechInteraction = new SpeechInteraction(this, reader);
+            
             //Bluetooth stuff here 
             if (BluetoothRadio.PrimaryRadio.Mode == RadioMode.Discoverable)
             {
@@ -224,16 +226,7 @@ namespace Hpi.Hci.Bachelorproject1617.PhotoBooth
                 
             }
 
-            timer = new Timer(20000);
-            timer.Elapsed += new ElapsedEventHandler(HandleTimer);
-            timer.Start();
-
             lastSkeletonTimeStamp = DateTime.Now;
-        }
-
-        private void HandleTimer(object source, ElapsedEventArgs evt)
-        {
-           speechInteraction.fsm.Fire(SpeechInteraction.Command.Repeat);
         }
 
         
@@ -761,7 +754,6 @@ namespace Hpi.Hci.Bachelorproject1617.PhotoBooth
         private void ButtonPrintBoth(object sender, RoutedEventArgs e)
         {
             TakePictureOutlines(null,null);
-            
             TakePictureSkeleton(null, null);
 
             
@@ -787,6 +779,8 @@ namespace Hpi.Hci.Bachelorproject1617.PhotoBooth
             //speechInteraction.fsm.Fire(SpeechInteraction.Command.Outlines);
 
         }
+
+
 
 
         public void TakePictureSkeleton(object sender, RoutedEventArgs e)
@@ -920,25 +914,26 @@ namespace Hpi.Hci.Bachelorproject1617.PhotoBooth
             foreach (BluetoothDeviceInfo device in e.Devices)
             {
                 Debug.WriteLine(device.DeviceName + " is a " + device.ClassOfDevice.MajorDevice.ToString());
-                if (device.DeviceName.Contains("raspberrypi") && !alreadyPaired) //osboxes vs raspberry
+                if (device.DeviceName.Contains("osboxes") && !alreadyPaired) //osboxes vs raspberry
                 {
-                    bool paired = BluetoothSecurity.PairRequest(device.DeviceAddress, "123456");
+                    this.device = device;
+                    /*bool paired = BluetoothSecurity.PairRequest(device.DeviceAddress, "123456");
                     if (paired)
                     {
                         alreadyPaired = true;
                         Console.WriteLine("Paired!");
-                        thisDevice.BeginConnect(device.DeviceAddress, BluetoothService.SerialPort, new AsyncCallback(Connect), device);
+                        thisDevice.BeginConnect(device.DeviceAddress, BluetoothService.SerialPort, result => Connect(result, speechInteraction), device);
 
                     }
                     else
                     {
                         MessageBox.Show("There was a problem pairing.");
-                    }
+                    }*/
                 }
             }
         }
 
-        private void SendSvg(String svgString)
+        public void SendSvg(String svgString)
         {
             if (thisDevice.Connected)
             {
@@ -952,10 +947,7 @@ namespace Hpi.Hci.Bachelorproject1617.PhotoBooth
                     byte[] rv = new byte[36 + 4 + length];
                     Console.WriteLine("length of svg is " + length);
                     System.Buffer.BlockCopy(Encoding.ASCII.GetBytes(uuid.ToString()), 0, rv, 0, 36);
-                    byte[] intBytes = BitConverter.GetBytes(length);
-                    if (BitConverter.IsLittleEndian)
-                        Array.Reverse(intBytes);
-                    byte[] result = intBytes;
+                    byte[] result = IntToByteArray(length);
                     System.Buffer.BlockCopy(result, 0, rv, 36, 4);
                     System.Buffer.BlockCopy(Encoding.UTF8.GetBytes(svgString), 0, rv, 36 + 4, length);
                     stream.Write(rv, 0, 36 + 4 + length);
@@ -971,13 +963,91 @@ namespace Hpi.Hci.Bachelorproject1617.PhotoBooth
         }
 
 
-        private static void Connect(IAsyncResult result)
-        {
+        private byte[] IntToByteArray(int input){
+            byte[] intBytes = BitConverter.GetBytes(input);
+                    if (BitConverter.IsLittleEndian)
+                        Array.Reverse(intBytes);
+            byte[] result = intBytes;
+            return result;
+        }
 
+        public void Connect(){
+
+
+            bool paired = BluetoothSecurity.PairRequest(device.DeviceAddress, "123456");
+            if (paired)
+            {
+                alreadyPaired = true;
+                Console.WriteLine("Paired!");
+                thisDevice.BeginConnect(device.DeviceAddress, BluetoothService.SerialPort, result => Connected(result, speechInteraction), device);
+
+            }
+            else
+            {
+                MessageBox.Show("There was a problem pairing.");
+            }
+        }
+
+        private static void Connected(IAsyncResult result, SpeechInteraction speechInteraction)
+        {
+            
             if (result.IsCompleted)
             {
-
+                Action lambdaConnected = () => speechInteraction.fsm.Fire(SpeechInteraction.Command.Connected);
+                Application.Current.Dispatcher.Invoke(
+                (Delegate)lambdaConnected);
                 // client is connected now :)
+                NetworkStream stream = thisDevice.GetStream();
+                if (stream.CanRead)
+                {
+                    byte[] myReadBuffer = new byte[1024];
+                    StringBuilder myCompleteMessage = new StringBuilder();
+                    int numberOfBytesRead = 0;
+
+                    // Incoming message may be larger than the buffer size. 
+                    do
+                    {
+                        numberOfBytesRead = stream.Read(myReadBuffer, 0, myReadBuffer.Length);
+                        /*byte[] typeBytes = new byte[4];
+                        Buffer.BlockCopy(myReadBuffer,0,type,0,4);
+                        if (BitConverter.IsLittleEndian)
+                            Array.Reverse(typeBytes);
+
+                        int type = BitConverter.ToInt32(typeBytes, 0);*/
+                        int[] bytesAsInts = myReadBuffer.Select(x => (int)x).ToArray();
+                        switch (bytesAsInts[0]){
+                            case 0: 
+                                Console.WriteLine("Received input data from airbar");
+                                break;
+                            case 1:
+                                int status = bytesAsInts[1];
+                                Console.WriteLine("Status " + status);
+                                Console.WriteLine("received uuid");
+                                byte [] subArray = new byte[36];
+                                Buffer.BlockCopy(myReadBuffer, 0, subArray, 8, 44);
+                                String uuid = Encoding.ASCII.GetString(subArray);
+                                Console.WriteLine("received uuid " + uuid);
+                                switch (status){
+                                    case 0:
+                                        String text = "Finished printing";
+                                        Action lambda = () => speechInteraction.fsm.Fire(SpeechInteraction.Command.Printed);
+                                        Application.Current.Dispatcher.Invoke(
+                                        (Delegate)lambda);
+                                        break;  
+                                
+
+                                }
+                                break;
+                        }
+
+                        myCompleteMessage.AppendFormat("{0}", Encoding.ASCII.GetString(myReadBuffer, 0, numberOfBytesRead));
+                    }
+                    while (stream.DataAvailable);
+
+                    // Print out the received message to the console.
+                    Console.WriteLine("You received the following message : " + myCompleteMessage);
+                }
+                
                 Console.WriteLine(thisDevice.Connected);
 
             }
