@@ -971,11 +971,11 @@ fill=""#000000"" stroke=""none"">
                 if (device.DeviceName.Contains("raspberrypi") && !alreadyPaired) //osboxes vs raspberry
                 {
                     this.device = device;
-                    alreadyPaired = true;
+                    //alreadyPaired = true;
 
-                    bool paired = BluetoothSecurity.PairRequest(device.DeviceAddress, "123456");
-                    alreadyPaired = true;
-                    thisDevice.BeginConnect(device.DeviceAddress, BluetoothService.SerialPort, result => Connect(result, speechInteraction), device);
+                    //bool paired = BluetoothSecurity.PairRequest(device.DeviceAddress, "123456");
+                    //alreadyPaired = true;
+                    //thisDevice.BeginConnect(device.DeviceAddress, BluetoothService.SerialPort, result => Connect(result, speechInteraction), device);
                     /*bool paired = BluetoothSecurity.PairRequest(device.DeviceAddress, "123456");
                     if (paired)
                     {
@@ -1036,16 +1036,18 @@ fill=""#000000"" stroke=""none"">
             if (!thisDevice.Connected)
             {
 
-                //if (paired)
-                //{
-                  //  alreadyPaired = true;
-                    Console.WriteLine("Connecting!");
-                    thisDevice.BeginConnect(device.DeviceAddress, BluetoothService.SerialPort, result => Connected(result, speechInteraction), device);
-                //}
-                /*else
+                bool paired = BluetoothSecurity.PairRequest(device.DeviceAddress, "123456");
+                if (paired)
                 {
-                    Console.WriteLine("Not paired!");
-                }*/
+                    alreadyPaired = true;
+                    Console.WriteLine("Paired!");
+                    thisDevice.BeginConnect(device.DeviceAddress, BluetoothService.SerialPort, result => Connected(result, speechInteraction), device);
+
+                }
+                else
+                {
+                    Console.WriteLine("There was a problem pairing.");
+                }
             }
             else
             {
