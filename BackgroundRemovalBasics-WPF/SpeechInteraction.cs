@@ -13,13 +13,16 @@ namespace HPI.HCI.Bachelorproject1617.PhotoBooth
     class SpeechInteraction
     {
         
-        String NoPersonRecognizedRepeat = @"Huhu, is someone there? I don't see anyone... Don't be shy, just step about 1 meter in front of the kinect-camera and we can do an awesome tactile snapshot of you! If you don't get recognized, try to look more like a see star by spreading your arms away from you";
-        String PersonRecognizedTransition = @"Woop woop! I recognized a person!! I would suggest to print a picture of your silhouette now, what do you think? If you want that too, just say 'outlines' . Otherwise we can also print you as a stick-figure, which looks also pretty cool if you do a crazy gesture. If you want to try that, just say 'skeleton'";
+        //String NoPersonRecognizedRepeat = @"Huhu, is someone there? I don't see anyone... Don't be shy, just step about 1 meter in front of the kinect-camera and we can do an awesome tactile snapshot of you! If you don't get recognized, try to look more like a see star by spreading your arms away from you";
+        String NoPersonRecognizedRepeat = @"Huhu, is someone there? Just step about 1 meter in front of the kinect-camera and we can do an awesome tactile snapshot of you! If you want get a mate and do a cool pose together";
+        //String PersonRecognizedTransition = @"Woop woop! I recognized a person!! I would suggest to print a picture of your silhouette now, what do you think? If you want that too, just say 'outlines' . Otherwise we can also print you as a stick-figure, which looks also pretty cool if you do a crazy gesture. If you want to try that, just say 'skeleton'";
+        String PersonRecognizedTransition = @"Woop woop! I recognized a person!! If you want a print of your silhouette now, just say 'outlines'. If you would rather have a picture of yourself as a stick-figure just say 'skeleton'";
         String PersonLeft = @"Oohh, where did you go? I can't see you anymore";
-        String PersonRecognizedRepeat = @"hey, are you still there? Don't forget, I would suggest to print your silhouette now, what do you think? If you want that too, just say 'outlines' . Otherwise we can also print you as a stick-figure, which looks also pretty cool if you do a crazy gesture. If you want to do that, just say 'skeleton'";
+        //String PersonRecognizedRepeat = @"hey, are you still there? Don't forget, I would suggest to print your silhouette now, what do you think? If you want that too, just say 'outlines' . Otherwise we can also print you as a stick-figure, which looks also pretty cool if you do a crazy gesture. If you want to do that, just say 'skeleton'";
+        String PersonRecognizedRepeat = @"hey, are you still there? Don't forget, if you want to print your silhouette now, just say 'outlines' . Otherwise we can also print you as a stick-figure if you say 'skeleton'"; 
         String PictureTaking1 = @"Alright, I will take a picture in 3...2...1...";
         String PictureTaking2 = @"Awesome shot! Do you want me to print it now? If so, just say 'print'. Otherwise you can also go back to take another picture.";
-        String PictureTakenRepeat = @"Do you want me to print the outlines/skeleton that I just captured?";
+        String PictureTakenRepeat = @"Do you want me to print the picture now? If yes just say 'print'";
         String BackToPersonRecognized = @"going back... if you want to take a picture of your silhouette just say 'outlines', otherwise you can also print a picture of yourself as a stick-person by saying 'skeleton'";
         String ConnectingString = @"connecting to Linepod";
         String PrintingString = "printing";
@@ -65,8 +68,8 @@ namespace HPI.HCI.Bachelorproject1617.PhotoBooth
             this.reader.SpeakStarted += reader_SpeakStarted;
             this.reader.SpeakCompleted += reader_SpeakCompleted;
             
-            SpeakText(@"Welcome to this magical Kinect Photobooth, the camera that produces tactile snapshots of your gestures. If you want a picture just position yourself 1 meter in front of the Kinect-Camera and spread your arms away from you to get recognized");
-
+            //SpeakText(@"Welcome to this magical Kinect Photobooth, the camera that produces tactile snapshots of your gestures. If you want a picture just position yourself 1 meter in front of the Kinect-Camera and spread your arms away from you to get recognized");
+            SpeakText(@"Hey there, if you want a tactile snapshot of your gesture just position yourself 1 meter in front of the Kinect-Camera and spread your arms away from you to get recognized. I can detect two persons at the time so get a mate and let's go");
 
             fsm = new PassiveStateMachine<ProcessState, Command>();
             fsm.In(ProcessState.NoPersonRecognized)
@@ -90,6 +93,7 @@ namespace HPI.HCI.Bachelorproject1617.PhotoBooth
                 .On(Command.Outlines).Goto(ProcessState.PictureTaken).Execute(() =>
                 {
                     SpeakText(PictureTaking1);
+                    System.Threading.Thread.Sleep(5500);
                     PlayClickSound();
                     mainWindow.TakePictureOutlines(null, null);
                     SpeakText(PictureTaking2);
@@ -99,6 +103,7 @@ namespace HPI.HCI.Bachelorproject1617.PhotoBooth
                 .On(Command.Skeleton).Goto(ProcessState.PictureTaken).Execute(() =>
                 {
                     reader.Speak(PictureTaking1);
+                    System.Threading.Thread.Sleep(5500);
                     mainWindow.TakePictureSkeleton(null, null);
                     PlayClickSound();
                     reader.Speak(PictureTaking2);
@@ -182,7 +187,15 @@ namespace HPI.HCI.Bachelorproject1617.PhotoBooth
             {
                 mainWindow.speechEngine.RecognizeAsyncCancel();
                 //System.Threading.Thread.Sleep(1000);
-                mainWindow.speechEngine.RecognizeAsync(RecognizeMode.Multiple);
+                try
+                {
+                    mainWindow.speechEngine.RecognizeAsync(RecognizeMode.Multiple);
+                }
+                catch (InvalidOperationException)
+                {
+                    Console.WriteLine("InvalidOperationException");
+                }
+                
                 
             }
         }

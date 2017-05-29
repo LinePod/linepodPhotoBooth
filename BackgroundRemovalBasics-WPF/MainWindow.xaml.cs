@@ -914,9 +914,10 @@ namespace Hpi.Hci.Bachelorproject1617.PhotoBooth
             foreach (BluetoothDeviceInfo device in e.Devices)
             {
                 Debug.WriteLine(device.DeviceName + " is a " + device.ClassOfDevice.MajorDevice.ToString());
-                if (device.DeviceName.Contains("osboxes") && !alreadyPaired) //osboxes vs raspberry
+                if (device.DeviceName.Contains("raspberrypi") && !alreadyPaired) //osboxes vs raspberry
                 {
                     this.device = device;
+                    alreadyPaired = true;
                     /*bool paired = BluetoothSecurity.PairRequest(device.DeviceAddress, "123456");
                     if (paired)
                     {
@@ -975,16 +976,20 @@ namespace Hpi.Hci.Bachelorproject1617.PhotoBooth
 
 
             bool paired = BluetoothSecurity.PairRequest(device.DeviceAddress, "123456");
-            if (paired)
+            if (!thisDevice.Connected)
             {
-                alreadyPaired = true;
-                Console.WriteLine("Paired!");
-                thisDevice.BeginConnect(device.DeviceAddress, BluetoothService.SerialPort, result => Connected(result, speechInteraction), device);
 
+                if (paired)
+                {
+                    alreadyPaired = true;
+                    Console.WriteLine("Connecting!");
+                    thisDevice.BeginConnect(device.DeviceAddress, BluetoothService.SerialPort, result => Connected(result, speechInteraction), device);
+                }
             }
             else
             {
-                MessageBox.Show("There was a problem pairing.");
+                speechInteraction.fsm.Fire(SpeechInteraction.Command.Connected);
+                MessageBox.Show("Woohoo, we are already connected. Nothing left to do but printing");
             }
         }
 
@@ -1050,6 +1055,10 @@ namespace Hpi.Hci.Bachelorproject1617.PhotoBooth
                 
                 Console.WriteLine(thisDevice.Connected);
 
+            }
+            else
+            {
+                Console.WriteLine("Could not connect");
             }
         }
 
