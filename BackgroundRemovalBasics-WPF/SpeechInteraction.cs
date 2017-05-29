@@ -2,8 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using bbv;
-using bbv.Common.StateMachine;
+using Appccelerate.StateMachine;
 using System.Speech.Synthesis;
 using Microsoft.Speech.Recognition;
 using System.Timers;
@@ -49,7 +48,8 @@ namespace HPI.HCI.Bachelorproject1617.PhotoBooth
             FramesNotReady,
             Repeat,
             Connected,
-            Printed
+            Printed,
+            Test
         }
 
         public PassiveStateMachine<ProcessState, Command> fsm;
@@ -69,7 +69,7 @@ namespace HPI.HCI.Bachelorproject1617.PhotoBooth
             this.reader.SpeakCompleted += reader_SpeakCompleted;
             
             //SpeakText(@"Welcome to this magical Kinect Photobooth, the camera that produces tactile snapshots of your gestures. If you want a picture just position yourself 1 meter in front of the Kinect-Camera and spread your arms away from you to get recognized");
-            SpeakText(@"Hey there, if you want a tactile snapshot of your gesture just position yourself 1 meter in front of the Kinect-Camera and spread your arms away from you to get recognized. I can detect two persons at the time so get a mate and let's go");
+            //SpeakText(@"Hey there, if you want a tactile snapshot of your gesture just position yourself 1 meter in front of the Kinect-Camera and spread your arms away from you to get recognized. I can detect two persons at the time so get a mate and let's go");
 
             fsm = new PassiveStateMachine<ProcessState, Command>();
             fsm.In(ProcessState.NoPersonRecognized)
@@ -78,10 +78,11 @@ namespace HPI.HCI.Bachelorproject1617.PhotoBooth
                     SpeakText(NoPersonRecognizedRepeat);
                     StartTimer(35000);
                 }) //reader.Speak(NoPersonRecognizedRepeat)
-                .On(Command.FramesReady).Goto(ProcessState.PersonRecognized).Execute(() => { 
+                .On(Command.FramesReady).Goto(ProcessState.PersonRecognized).Execute(() =>
+                {
                     SpeakText(PersonRecognizedTransition);
                     StartTimer(35000);
-                });
+                }).On(Command.Test).Goto(ProcessState.PictureTaken);
             fsm.In(ProcessState.PersonRecognized)
                 .On(Command.Repeat).Execute(() => { SpeakText(PersonRecognizedRepeat); 
                     StartTimer(35000); 

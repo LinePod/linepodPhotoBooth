@@ -30,7 +30,7 @@ namespace Hpi.Hci.Bachelorproject1617.PhotoBooth
     using Microsoft.Speech.Recognition;
     using Microsoft.Speech.AudioFormat;
     using System.Speech.Synthesis;
-    using bbv;
+ 
     using HPI.HCI.Bachelorproject1617.PhotoBooth;
     using System.Timers;
     using System.Linq;
@@ -53,7 +53,58 @@ namespace Hpi.Hci.Bachelorproject1617.PhotoBooth
         private Boolean alreadyPaired = false;
         BluetoothDeviceInfo device;
 
-        public String svgImage;
+        public String svgImage = @"<?xml version=""1.0"" standalone=""no""?>
+<!DOCTYPE svg PUBLIC ""-//W3C//DTD SVG 20010904//EN""
+ ""http://www.w3.org/TR/2001/REC-SVG-20010904/DTD/svg10.dtd"">
+<svg version=""1.0"" xmlns=""http://www.w3.org/2000/svg""
+ width=""640.000000pt"" height=""480.000000pt"" viewBox=""0 0 640.000000 480.000000""
+ preserveAspectRatio=""xMidYMid meet"">
+<metadata>
+Created by potrace 1.14, written by Peter Selinger 2001-2017
+</metadata>
+<g transform=""translate(0.000000,480.000000) scale(1.000000,-1.000000)""
+fill=""#000000"" stroke=""none"">
+<path d=""M270 367 c0 -1 -1 -1 -3 -1 -1 0 -3 -1 -4 -2 -1 -1 -2 -2 -3 -2 0 0
+-4 -2 -7 -5 -5 -6 -5 -6 -5 -10 0 -3 0 -5 1 -5 1 0 1 -2 1 -4 0 -2 0 -4 1 -4
+1 0 1 -4 1 -9 0 -5 0 -9 1 -9 1 0 1 -1 1 -3 0 -2 0 -3 1 -3 1 0 1 -3 1 -7 0
+-4 0 -7 -1 -7 -1 0 -1 -1 -1 -2 0 -2 -6 -8 -8 -8 -1 0 -2 0 -2 -1 0 -1 -1 -1
+-2 -1 -1 0 -2 0 -2 -1 0 -1 -1 -1 -3 -1 -2 0 -3 0 -3 -1 0 -1 -3 -1 -6 -1 -3
+0 -6 0 -6 -1 0 -1 -2 -1 -4 -1 -2 0 -4 0 -4 -1 0 -1 -1 -1 -2 -1 -1 0 -2 0 -2
+-1 0 -1 -1 -1 -2 -1 -1 0 -4 -2 -4 -4 0 -1 -1 -2 -2 -3 -1 -1 -2 -2 -2 -3 0
+-1 -1 -2 -3 -4 -2 -2 -3 -3 -3 -4 0 -1 -1 -2 -2 -3 -1 -1 -2 -2 -2 -3 0 -1 0
+-2 -1 -2 -1 0 -1 -1 -1 -2 0 -1 0 -2 -1 -2 -1 0 -1 -1 -1 -2 0 -1 0 -2 -1 -2
+-1 0 -1 -1 -1 -3 0 -2 0 -3 -1 -3 -1 0 -1 -1 -1 -2 0 -1 0 -2 -1 -2 -1 0 -1
+-3 -1 -7 0 -4 0 -7 1 -7 1 0 1 -1 1 -2 0 -1 0 -2 -1 -2 -1 0 -1 -1 -1 -2 0 -1
+0 -2 -1 -2 -1 0 -1 0 -1 -1 0 -1 1 -1 2 -1 1 0 2 0 2 -1 0 -1 2 -1 5 -1 3 0 5
+1 7 3 4 5 12 4 12 -1 0 -1 0 -2 1 -2 1 0 1 -1 1 -3 0 -2 0 -3 1 -3 1 0 1 -1 1
+-2 0 -1 0 -2 1 -2 1 0 1 -6 1 -17 0 -11 0 -17 -1 -17 -1 0 -1 -3 -1 -7 0 -4 0
+-7 -1 -7 -1 0 -1 -2 -1 -5 0 -3 0 -5 -1 -5 -1 0 -1 -2 -1 -4 0 -2 0 -4 -1 -4
+-1 0 -1 -1 -1 -3 0 -2 0 -3 -1 -3 -1 0 -1 -1 -1 -3 0 -2 0 -3 -1 -3 -1 0 -1
+-1 -1 -3 0 -2 0 -3 -1 -3 -1 0 -1 -2 -1 -4 0 -2 0 -4 -1 -4 -1 0 -1 -1 -1 -2
+0 -1 0 -2 -1 -2 -1 0 -1 -1 -1 -2 0 -1 0 -2 -1 -2 -1 0 -1 -3 -1 -6 0 -3 0 -6
+1 -6 1 0 1 -1 1 -3 0 -2 0 -3 1 -3 1 0 1 -2 1 -5 0 -3 0 -5 -1 -5 -1 0 -1 -1
+-1 -3 0 -2 0 -3 -1 -3 -1 0 -1 -3 -1 -6 0 -3 0 -6 -1 -6 -1 0 -1 -4 -1 -11 0
+-7 0 -11 -1 -11 -1 0 -1 -4 -1 -10 0 -6 0 -10 -1 -10 -1 0 -1 -3 0 -5 3 -2 61
+-2 64 0 1 2 1 5 0 5 -1 1 -1 1 0 2 0 0 1 2 1 4 0 2 0 4 1 4 1 0 1 1 1 2 0 1 0
+2 1 2 1 0 1 1 1 3 0 3 0 3 5 3 5 0 5 0 5 -3 0 -2 0 -3 1 -3 1 0 1 -3 1 -7 0
+-4 0 -7 -1 -7 -1 0 -1 -1 -1 -3 l0 -3 27 0 c26 0 27 0 27 2 0 1 1 2 1 2 1 1 1
+1 0 2 -1 0 -2 22 0 22 1 0 1 10 1 29 0 19 0 29 -1 29 -1 0 -1 6 -1 15 0 9 0
+15 -1 15 -1 0 -1 2 -1 4 0 2 0 4 -1 4 -1 0 -1 1 -1 3 0 2 0 3 -1 3 -1 0 -1 6
+-1 15 0 9 0 15 -1 15 -1 0 -1 4 -1 11 0 7 0 11 1 11 1 0 1 3 1 6 0 3 0 6 1 6
+1 0 1 2 1 4 0 4 4 8 7 8 1 0 5 -2 8 -6 3 -3 7 -6 7 -6 1 0 2 0 2 -1 0 -1 2 -1
+4 -1 l4 0 0 13 c0 8 0 13 -1 13 -1 0 -1 1 -1 2 0 1 -1 2 -2 3 -1 1 -2 2 -2 3
+0 1 0 2 -1 2 -1 0 -1 1 -1 2 0 1 0 2 -1 2 -1 0 -1 3 -1 7 0 4 0 7 -1 7 -1 0
+-1 1 -1 3 0 1 -1 3 -2 4 -1 1 -2 2 -2 3 0 1 0 2 -1 2 -1 0 -1 1 -1 2 0 1 -1 2
+-2 3 -1 1 -2 2 -2 3 0 2 -3 4 -4 4 -1 0 -2 0 -2 1 0 1 -2 1 -4 1 -2 0 -4 0 -4
+1 0 1 -1 1 -3 1 -2 0 -3 0 -3 1 0 1 -1 1 -2 1 -1 0 -2 0 -2 1 0 1 -1 1 -3 1
+-1 0 -3 1 -4 2 -1 1 -2 2 -3 2 -2 0 -6 5 -6 6 0 1 0 2 -1 2 -1 0 -1 2 -1 5 0
+3 0 5 1 5 1 0 1 1 1 2 0 1 0 2 1 2 1 0 1 1 1 2 0 1 6 8 8 8 2 0 6 5 6 6 0 1 1
+2 2 3 1 1 2 2 2 3 0 1 0 2 1 2 1 0 1 1 1 2 0 1 0 2 1 2 1 0 1 2 1 5 0 3 0 5
+-1 5 -1 0 -1 1 -1 3 0 2 0 3 -1 3 -1 0 -1 1 -1 2 0 1 -1 2 -2 3 -1 1 -2 2 -2
+3 0 2 -2 4 -4 4 -1 0 -2 1 -3 2 -1 1 -2 2 -3 2 -1 0 -2 0 -2 1 0 1 -2 1 -4 1
+-2 0 -4 0 -4 1 0 1 -3 1 -6 1 -3 0 -6 0 -6 -1z""/>
+</g>
+</svg>";
 
         //speech
 
@@ -218,7 +269,6 @@ namespace Hpi.Hci.Bachelorproject1617.PhotoBooth
                 bluetoothComponent.DiscoverDevicesComplete += bluetoothComponent_DiscoverDevicesComplete;
                 bluetoothComponent.DiscoverDevicesAsync(8, true, true, true, false, thisDevice);
                 Console.WriteLine("Connectable");
-
             }
             else
             {
@@ -515,6 +565,9 @@ namespace Hpi.Hci.Bachelorproject1617.PhotoBooth
                   case "PRINT":
                       speechInteraction.fsm.Fire(SpeechInteraction.Command.Print);
                       break;
+                  case "TEST":
+                      speechInteraction.fsm.Fire(SpeechInteraction.Command.Test);
+                      break;
                   
               }
             }
@@ -728,6 +781,7 @@ namespace Hpi.Hci.Bachelorproject1617.PhotoBooth
                 directions.Add(new SemanticResultValue("take picture", "OUTLINES"));
                 directions.Add(new SemanticResultValue("back", "BACK"));
                 directions.Add(new SemanticResultValue("print", "PRINT"));
+                directions.Add(new SemanticResultValue("test", "TEST"));
 
                 var gb = new GrammarBuilder { Culture = ri.Culture };
                 gb.Append(directions);
@@ -918,10 +972,13 @@ namespace Hpi.Hci.Bachelorproject1617.PhotoBooth
                 {
                     this.device = device;
                     alreadyPaired = true;
+
+                    bool paired = BluetoothSecurity.PairRequest(device.DeviceAddress, "123456");
+                    alreadyPaired = true;
+                    thisDevice.BeginConnect(device.DeviceAddress, BluetoothService.SerialPort, result => Connect(result, speechInteraction), device);
                     /*bool paired = BluetoothSecurity.PairRequest(device.DeviceAddress, "123456");
                     if (paired)
                     {
-                        alreadyPaired = true;
                         Console.WriteLine("Paired!");
                         thisDevice.BeginConnect(device.DeviceAddress, BluetoothService.SerialPort, result => Connect(result, speechInteraction), device);
 
@@ -975,21 +1032,25 @@ namespace Hpi.Hci.Bachelorproject1617.PhotoBooth
         public void Connect(){
 
 
-            bool paired = BluetoothSecurity.PairRequest(device.DeviceAddress, "123456");
+            
             if (!thisDevice.Connected)
             {
 
-                if (paired)
-                {
-                    alreadyPaired = true;
+                //if (paired)
+                //{
+                  //  alreadyPaired = true;
                     Console.WriteLine("Connecting!");
                     thisDevice.BeginConnect(device.DeviceAddress, BluetoothService.SerialPort, result => Connected(result, speechInteraction), device);
-                }
+                //}
+                /*else
+                {
+                    Console.WriteLine("Not paired!");
+                }*/
             }
             else
             {
                 speechInteraction.fsm.Fire(SpeechInteraction.Command.Connected);
-                MessageBox.Show("Woohoo, we are already connected. Nothing left to do but printing");
+                Console.WriteLine("Woohoo we are already connected!");
             }
         }
 

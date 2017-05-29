@@ -1394,7 +1394,7 @@
             <remarks>If the propertyName parameter
             does not correspond to an existing property on the current class, an
             exception is thrown in DEBUG configuration only.</remarks>
-            <param name="propertyName">The name of the property that
+            <param name="propertyName">(optional) The name of the property that
             changed.</param>
         </member>
         <member name="M:GalaSoft.MvvmLight.ObservableObject.RaisePropertyChanged(System.String)">
@@ -1404,7 +1404,7 @@
             <remarks>If the propertyName parameter
             does not correspond to an existing property on the current class, an
             exception is thrown in DEBUG configuration only.</remarks>
-            <param name="propertyName">The name of the property that
+            <param name="propertyName">(optional) The name of the property that
             changed.</param>
         </member>
         <member name="M:GalaSoft.MvvmLight.ObservableObject.RaisePropertyChanging``1(System.Linq.Expressions.Expression{System.Func{``0}})">
@@ -1467,6 +1467,22 @@
             false otherwise. The event is not raised if the old
             value is equal to the new value.</returns>
         </member>
+        <member name="M:GalaSoft.MvvmLight.ObservableObject.Set``1(``0@,``0,System.String)">
+            <summary>
+            Assigns a new value to the property. Then, raises the
+            PropertyChanged event if needed. 
+            </summary>
+            <typeparam name="T">The type of the property that
+            changed.</typeparam>
+            <param name="field">The field storing the property's value.</param>
+            <param name="newValue">The property's value after the change
+            occurred.</param>
+            <param name="propertyName">(optional) The name of the property that
+            changed.</param>
+            <returns>True if the PropertyChanged event has been raised,
+            false otherwise. The event is not raised if the old
+            value is equal to the new value.</returns>
+        </member>
         <member name="E:GalaSoft.MvvmLight.ObservableObject.PropertyChanged">
             <summary>
             Occurs after a property value changes.
@@ -1485,6 +1501,52 @@
         <member name="P:GalaSoft.MvvmLight.ObservableObject.PropertyChangingHandler">
             <summary>
             Provides access to the PropertyChanging event handler to derived classes.
+            </summary>
+        </member>
+        <member name="T:GalaSoft.MvvmLight.Threading.DispatcherHelper">
+            <summary>
+            Helper class for dispatcher operations on the UI thread.
+            </summary>
+        </member>
+        <member name="M:GalaSoft.MvvmLight.Threading.DispatcherHelper.CheckBeginInvokeOnUI(System.Action)">
+            <summary>
+            Executes an action on the UI thread. If this method is called
+            from the UI thread, the action is executed immendiately. If the
+            method is called from another thread, the action will be enqueued
+            on the UI thread's dispatcher and executed asynchronously.
+            <para>For additional operations on the UI thread, you can get a
+            reference to the UI thread's dispatcher thanks to the property
+            <see cref="P:GalaSoft.MvvmLight.Threading.DispatcherHelper.UIDispatcher"/></para>.
+            </summary>
+            <param name="action">The action that will be executed on the UI
+            thread.</param>
+        </member>
+        <member name="M:GalaSoft.MvvmLight.Threading.DispatcherHelper.RunAsync(System.Action)">
+            <summary>
+            Invokes an action asynchronously on the UI thread.
+            </summary>
+            <param name="action">The action that must be executed.</param>
+            <returns>An object, which is returned immediately after BeginInvoke is called, that can be used to interact
+             with the delegate as it is pending execution in the event queue.</returns>
+        </member>
+        <member name="M:GalaSoft.MvvmLight.Threading.DispatcherHelper.Initialize">
+            <summary>
+            This method should be called once on the UI thread to ensure that
+            the <see cref="P:GalaSoft.MvvmLight.Threading.DispatcherHelper.UIDispatcher"/> property is initialized.
+            <para>In a Silverlight application, call this method in the
+            Application_Startup event handler, after the MainPage is constructed.</para>
+            <para>In WPF, call this method on the static App() constructor.</para>
+            </summary>
+        </member>
+        <member name="M:GalaSoft.MvvmLight.Threading.DispatcherHelper.Reset">
+            <summary>
+            Resets the class by deleting the <see cref="P:GalaSoft.MvvmLight.Threading.DispatcherHelper.UIDispatcher"/>
+            </summary>
+        </member>
+        <member name="P:GalaSoft.MvvmLight.Threading.DispatcherHelper.UIDispatcher">
+            <summary>
+            Gets a reference to the UI thread's dispatcher, after the
+            <see cref="M:GalaSoft.MvvmLight.Threading.DispatcherHelper.Initialize"/> method has been called on the UI thread.
             </summary>
         </member>
         <member name="T:GalaSoft.MvvmLight.ViewModelBase">
@@ -1601,6 +1663,24 @@
             be broadcasted. If false, only the event will be raised.</param>
             <returns>True if the PropertyChanged event was raised, false otherwise.</returns>
         </member>
+        <member name="M:GalaSoft.MvvmLight.ViewModelBase.Set``1(``0@,``0,System.Boolean,System.String)">
+            <summary>
+            Assigns a new value to the property. Then, raises the
+            PropertyChanged event if needed, and broadcasts a
+            PropertyChangedMessage using the Messenger instance (or the
+            static default instance if no Messenger instance is available). 
+            </summary>
+            <typeparam name="T">The type of the property that
+            changed.</typeparam>
+            <param name="field">The field storing the property's value.</param>
+            <param name="newValue">The property's value after the change
+            occurred.</param>
+            <param name="broadcast">If true, a PropertyChangedMessage will
+            be broadcasted. If false, only the event will be raised.</param>
+            <param name="propertyName">(optional) The name of the property that
+            changed.</param>
+            <returns>True if the PropertyChanged event was raised, false otherwise.</returns>
+        </member>
         <member name="P:GalaSoft.MvvmLight.ViewModelBase.IsInDesignMode">
             <summary>
             Gets a value indicating whether the control is in design mode
@@ -1618,52 +1698,6 @@
             Gets or sets an instance of a <see cref="T:GalaSoft.MvvmLight.Messaging.IMessenger"/> used to
             broadcast messages to other objects. If null, this class will
             attempt to broadcast using the Messenger's default instance.
-            </summary>
-        </member>
-        <member name="T:GalaSoft.MvvmLight.Threading.DispatcherHelper">
-            <summary>
-            Helper class for dispatcher operations on the UI thread.
-            </summary>
-        </member>
-        <member name="M:GalaSoft.MvvmLight.Threading.DispatcherHelper.CheckBeginInvokeOnUI(System.Action)">
-            <summary>
-            Executes an action on the UI thread. If this method is called
-            from the UI thread, the action is executed immendiately. If the
-            method is called from another thread, the action will be enqueued
-            on the UI thread's dispatcher and executed asynchronously.
-            <para>For additional operations on the UI thread, you can get a
-            reference to the UI thread's dispatcher thanks to the property
-            <see cref="P:GalaSoft.MvvmLight.Threading.DispatcherHelper.UIDispatcher"/></para>.
-            </summary>
-            <param name="action">The action that will be executed on the UI
-            thread.</param>
-        </member>
-        <member name="M:GalaSoft.MvvmLight.Threading.DispatcherHelper.RunAsync(System.Action)">
-            <summary>
-            Invokes an action asynchronously on the UI thread.
-            </summary>
-            <param name="action">The action that must be executed.</param>
-            <returns>An object, which is returned immediately after BeginInvoke is called, that can be used to interact
-             with the delegate as it is pending execution in the event queue.</returns>
-        </member>
-        <member name="M:GalaSoft.MvvmLight.Threading.DispatcherHelper.Initialize">
-            <summary>
-            This method should be called once on the UI thread to ensure that
-            the <see cref="P:GalaSoft.MvvmLight.Threading.DispatcherHelper.UIDispatcher"/> property is initialized.
-            <para>In a Silverlight application, call this method in the
-            Application_Startup event handler, after the MainPage is constructed.</para>
-            <para>In WPF, call this method on the static App() constructor.</para>
-            </summary>
-        </member>
-        <member name="M:GalaSoft.MvvmLight.Threading.DispatcherHelper.Reset">
-            <summary>
-            Resets the class by deleting the <see cref="P:GalaSoft.MvvmLight.Threading.DispatcherHelper.UIDispatcher"/>
-            </summary>
-        </member>
-        <member name="P:GalaSoft.MvvmLight.Threading.DispatcherHelper.UIDispatcher">
-            <summary>
-            Gets a reference to the UI thread's dispatcher, after the
-            <see cref="M:GalaSoft.MvvmLight.Threading.DispatcherHelper.Initialize"/> method has been called on the UI thread.
             </summary>
         </member>
     </members>
