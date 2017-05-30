@@ -44,8 +44,10 @@ namespace Hpi.Hci.Bachelorproject1617.PhotoBooth
     public partial class MainWindow : Window, IDisposable
     {
 
-        //skeleton vars 
+        public bool AlreadyConvertedToSVG = false;
 
+        //skeleton vars 
+        
         private const int scale = 100;
         private const int svgWidth = 200;
         private const int svgHeight = 200;
@@ -188,7 +190,7 @@ fill=""#000000"" stroke=""none"">
         private DrawingImage imageSource;
 
 
-        private bool pictureTaken = false;
+        public bool pictureTaken = false;
 
         /// <summary>
         /// Format we will use for the depth stream
@@ -431,34 +433,36 @@ fill=""#000000"" stroke=""none"">
                     byte[] pixelData = new byte[backgroundRemovedFrame.PixelDataLength];
                     backgroundRemovedFrame.CopyPixelDataTo(pixelData);
 
-                    if (pictureTaken)
+                    for (int i = 0; i < pixelData.Length; i += BackgroundRemovedColorFrame.BytesPerPixel)
                     {
-       
-                        for (int i = 0; i < pixelData.Length; i += BackgroundRemovedColorFrame.BytesPerPixel)
-                        {
-
-                            pixelData[i] = 0;
-                            pixelData[i + 1] = 255;
-                            pixelData[i + 2] = 0;
-
-                        }
-
-                     
+                        pixelData[i] = 0;
+                        pixelData[i + 1] = 255;
+                        pixelData[i + 2] = 0;
                     }
 
-                    // Write the pixel data into our bitmap
-                    this.foregroundBitmap.WritePixels(
+                    if (!pictureTaken)
+                    {
+
+                        // Write the pixel data into our bitmap
+                
+                        this.foregroundBitmap.WritePixels(
                         new Int32Rect(0, 0, this.foregroundBitmap.PixelWidth, this.foregroundBitmap.PixelHeight),
                         pixelData,
                         this.foregroundBitmap.PixelWidth * sizeof(int),
                         0);
 
-
-                    if (pictureTaken)
-                    {
-                        PrintSVGOutlines();
-                       
                     }
+                    else
+                    {
+                        if (!AlreadyConvertedToSVG)
+                        {
+                            PrintSVGOutlines();
+                            AlreadyConvertedToSVG = true;
+                        }
+                        
+                    }
+
+                
 
                 }
             }
@@ -513,7 +517,6 @@ fill=""#000000"" stroke=""none"">
 
             //Bitmap bmp = BmpFromByteArray(pixelData, backgroundRemovedFrame.Width, backgroundRemovedFrame.Height);
             GenerateOutlineSVG(path);
-            pictureTaken = false;
 
         }
 
@@ -860,8 +863,8 @@ fill=""#000000"" stroke=""none"">
                 }
                 Console.WriteLine("all skeletons done");
                 //reader.Speak("Skeleton is being printed");
-                
-                
+
+                pictureTaken = true;
                 
             }
 
@@ -1009,8 +1012,10 @@ fill=""#000000"" stroke=""none"">
                     System.Buffer.BlockCopy(result, 0, rv, 36, 4);
                     System.Buffer.BlockCopy(Encoding.UTF8.GetBytes(svgString), 0, rv, 36 + 4, length);
                     stream.Write(rv, 0, 36 + 4 + length);
-                    Console.WriteLine(rv.ToString());
+                    //Console.WriteLine(rv.ToString());
 
+                    pictureTaken = false;
+                    AlreadyConvertedToSVG = false;
                 }
             }
             else
@@ -1059,64 +1064,106 @@ fill=""#000000"" stroke=""none"">
         private static void Connected(IAsyncResult result, SpeechInteraction speechInteraction)
         {
             
-            if (result.IsCompleted)
+            if (result.IsCompleted )
             {
-                Action lambdaConnected = () => speechInteraction.fsm.Fire(SpeechInteraction.Command.Connected);
-                Application.Current.Dispatcher.Invoke(
-                (Delegate)lambdaConnected);
-                // client is connected now :)
-                NetworkStream stream = thisDevice.GetStream();
-                if (stream.CanRead)
+                if (thisDevice.Connected)
                 {
-                    byte[] myReadBuffer = new byte[1024];
-                    StringBuilder myCompleteMessage = new StringBuilder();
-                    int numberOfBytesRead = 0;
 
-                    // Incoming message may be larger than the buffer size. 
-                    do
+
+                
+                    Action lambdaConnected = () => speechInteraction.fsm.Fire(SpeechInteraction.Command.Connected);
+                    Application.Current.Dispatcher.Invoke(
+                    (Delegate)lambdaConnected);
+                    // client is connected now :)
+                    NetworkStream stream = thisDevice.GetStream();
+                    if (stream.CanRead)
                     {
-                        numberOfBytesRead = stream.Read(myReadBuffer, 0, myReadBuffer.Length);
-                        /*byte[] typeBytes = new byte[4];
-                        Buffer.BlockCopy(myReadBuffer,0,type,0,4);
-                        if (BitConverter.IsLittleEndian)
-                            Array.Reverse(typeBytes);
+                        byte[] myReadBuffer = new byte[1024];
+                        StringBuilder myCompleteMessage = new StringBuilder();
+                        int numberOfBytesRead = 0;
 
-                        int type = BitConverter.ToInt32(typeBytes, 0);*/
-                        int[] bytesAsInts = myReadBuffer.Select(x => (int)x).ToArray();
-                        switch (bytesAsInts[0]){
-                            case 0: 
-                                Console.WriteLine("Received input data from airbar");
-                                break;
-                            case 1:
-                                int status = bytesAsInts[1];
-                                Console.WriteLine("Status " + status);
-                                Console.WriteLine("received uuid");
-                                byte [] subArray = new byte[36];
-                                Buffer.BlockCopy(myReadBuffer, 0, subArray, 8, 44);
-                                String uuid = Encoding.ASCII.GetString(subArray);
-                                Console.WriteLine("received uuid " + uuid);
-                                switch (status){
-                                    case 0:
-                                        String text = "Finished printing";
-                                        Action lambda = () => speechInteraction.fsm.Fire(SpeechInteraction.Command.Printed);
-                                        Application.Current.Dispatcher.Invoke(
-                                        (Delegate)lambda);
-                                        break;  
-                                
+                        // Incoming message may be larger than the buffer size. 
+                        do
+                        {
+                            
+                            if (stream.DataAvailable)
+                            { 
+                                numberOfBytesRead = stream.Read(myReadBuffer, 0, myReadBuffer.Length);
+                                /*byte[] typeBytes = new byte[4];
+                                Buffer.BlockCopy(myReadBuffer,0,type,0,4);
+                                if (BitConverter.IsLittleEndian)
+                                    Array.Reverse(typeBytes);
 
+                                int type = BitConverter.ToInt32(typeBytes, 0);*/
+                                Console.WriteLine("Received Bytes");
+                                Console.WriteLine(BitConverter.ToString(myReadBuffer));
+                                //int[] bytesAsInts = Array.ConvertAll(myReadBuffer, c => (int)c);  //myReadBuffer.Select(x => (int)x).ToArray();
+                                Console.WriteLine("Casted bytes to int array");
+                                //int type = bytesAsInts[0];
+                                //Console.WriteLine("first int " + type);
+                                int value = 0;
+                                for (int i = 0; i < 4; i++)
+                                {
+                                    value = (value << 4) + (myReadBuffer[i] & 0xff);
                                 }
-                                break;
+                                Console.WriteLine("value " + value);
+                                switch (value)
+                                {
+                                    case 0:
+                                        /*Console.WriteLine("x1 " + bytesAsInts[1]);
+                                        Console.WriteLine("y1 " + bytesAsInts[2]);
+                                        Console.WriteLine("x2 " + bytesAsInts[3]);
+                                        Console.WriteLine("y3 " + bytesAsInts[4]);*/
+
+                                        Console.WriteLine("Received input data from airbar");
+                                        break;
+                                    case 1:
+                                        int status = 0;
+                                        for (int i = 4; i < 8; i++)
+                                        {
+                                            status = (status << 4) + (myReadBuffer[i] & 0xff);
+                                        }
+                                        //int status = bytesAsInts[1];
+                                        Console.WriteLine("Status " + status);
+                                        Console.WriteLine("received uuid");
+                                        byte[] subArray = new byte[36];
+                                        int start = sizeof(int) + sizeof(int);
+                                        //Buffer.BlockCopy(myReadBuffer, 0, subArray, start, 36);
+                                        
+                                        //String uuid = Encoding.ASCII.GetString(subArray);
+                                        //Console.WriteLine("received uuid " + uuid);
+                                        switch (status)
+                                        {
+                                            case 0:
+                                                Console.WriteLine("Finished printing");
+                                                Action lambda = () => speechInteraction.fsm.Fire(SpeechInteraction.Command.Printed);
+                                                Application.Current.Dispatcher.Invoke(
+                                                (Delegate)lambda);
+                                                break;
+
+
+                                        }
+                                        break;
+                                }
+                                Console.WriteLine("Stepped through decision tree");
+                            }
+                            
+                            //myCompleteMessage.AppendFormat("{0}", Encoding.ASCII.GetString(myReadBuffer, 0, numberOfBytesRead));
                         }
+                        
+                        while (stream.CanRead && thisDevice.Connected);
 
-                        myCompleteMessage.AppendFormat("{0}", Encoding.ASCII.GetString(myReadBuffer, 0, numberOfBytesRead));
+                        // Print out the received message to the console.
+                        //Console.WriteLine("You received the following message : " + myCompleteMessage);
                     }
-                    while (stream.DataAvailable);
-
-                    // Print out the received message to the console.
-                    Console.WriteLine("You received the following message : " + myCompleteMessage);
+                    else
+                    {
+                        Console.WriteLine("could not connect");
+                    }
                 }
                 
-                Console.WriteLine(thisDevice.Connected);
+                
+                
 
             }
             else
@@ -1134,64 +1181,68 @@ fill=""#000000"" stroke=""none"">
         /// <param name="e">event arguments</param>
         private void SensorSkeletonFrameReady(object sender, SkeletonFrameReadyEventArgs e)
         {
-            if (this.checkBoxSkeleton.IsChecked.GetValueOrDefault())
+            if (!pictureTaken)
             {
-                skeletons = new Skeleton[0];
 
-                using (SkeletonFrame skeletonFrame = e.OpenSkeletonFrame())
+                if (this.checkBoxSkeleton.IsChecked.GetValueOrDefault())
                 {
-                    if (skeletonFrame != null)
-                    {
-                        skeletons = new Skeleton[skeletonFrame.SkeletonArrayLength];
-                        skeletonFrame.CopySkeletonDataTo(skeletons);
-                    } 
-                }
+                    skeletons = new Skeleton[0];
 
-                using (DrawingContext dc = this.drawingGroup.Open())
-                {
-                    // Draw a transparent background to set the render size
-                    dc.DrawRectangle(Brushes.Black, null, new Rect(0.0, 0.0, RenderWidth, RenderHeight));
-
-                    bool noSkelTracked = true;
-                    if (skeletons.Length != 0)
+                    using (SkeletonFrame skeletonFrame = e.OpenSkeletonFrame())
                     {
-                        foreach (Skeleton skel in skeletons)
+                        if (skeletonFrame != null)
                         {
-                            RenderClippedEdges(skel, dc);
+                            skeletons = new Skeleton[skeletonFrame.SkeletonArrayLength];
+                            skeletonFrame.CopySkeletonDataTo(skeletons);
+                        } 
+                    }
 
-                            if (skel.TrackingState == SkeletonTrackingState.Tracked)
+                    using (DrawingContext dc = this.drawingGroup.Open())
+                    {
+                        // Draw a transparent background to set the render size
+                        dc.DrawRectangle(Brushes.Black, null, new Rect(0.0, 0.0, RenderWidth, RenderHeight));
+
+                        bool noSkelTracked = true;
+                        if (skeletons.Length != 0)
+                        {
+                            foreach (Skeleton skel in skeletons)
                             {
-                                this.DrawBonesAndJoints(skel, dc);
-                                noSkelTracked = false;
-                            }
-                            else if (skel.TrackingState == SkeletonTrackingState.PositionOnly)
-                            {
-                                dc.DrawEllipse(
-                                this.centerPointBrush,
-                                null,
-                                this.SkeletonPointToScreen(skel.Position),
-                                BodyCenterThickness,
-                                BodyCenterThickness);
-                                noSkelTracked = false;
+                                RenderClippedEdges(skel, dc);
+
+                                if (skel.TrackingState == SkeletonTrackingState.Tracked)
+                                {
+                                    this.DrawBonesAndJoints(skel, dc);
+                                    noSkelTracked = false;
+                                }
+                                else if (skel.TrackingState == SkeletonTrackingState.PositionOnly)
+                                {
+                                    dc.DrawEllipse(
+                                    this.centerPointBrush,
+                                    null,
+                                    this.SkeletonPointToScreen(skel.Position),
+                                    BodyCenterThickness,
+                                    BodyCenterThickness);
+                                    noSkelTracked = false;
+                                }
                             }
                         }
-                    }
 
-                    if (noSkelTracked)
-                    {
-                        if ((DateTime.Now - this.lastSkeletonTimeStamp).TotalMilliseconds > 1000)
+                        if (noSkelTracked)
                         {
-                            speechInteraction.fsm.Fire(SpeechInteraction.Command.FramesNotReady);
-                            lastSkeletonTimeStamp = DateTime.Now;
+                            if ((DateTime.Now - this.lastSkeletonTimeStamp).TotalMilliseconds > 1000)
+                            {
+                                speechInteraction.fsm.Fire(SpeechInteraction.Command.FramesNotReady);
+                                lastSkeletonTimeStamp = DateTime.Now;
+                            }
                         }
-                    }
-                    else
-                    {
-                        speechInteraction.fsm.Fire(SpeechInteraction.Command.FramesReady);
-                    }
+                        else
+                        {
+                            speechInteraction.fsm.Fire(SpeechInteraction.Command.FramesReady);
+                        }
                     
-                    // prevent drawing outside of our render area
-                    this.drawingGroup.ClipGeometry = new RectangleGeometry(new Rect(0.0, 0.0, RenderWidth, RenderHeight));
+                        // prevent drawing outside of our render area
+                        this.drawingGroup.ClipGeometry = new RectangleGeometry(new Rect(0.0, 0.0, RenderWidth, RenderHeight));
+                    }
                 }
 
                 

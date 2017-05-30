@@ -25,7 +25,7 @@ namespace HPI.HCI.Bachelorproject1617.PhotoBooth
         String BackToPersonRecognized = @"going back... if you want to take a picture of your silhouette just say 'outlines', otherwise you can also print a picture of yourself as a stick-person by saying 'skeleton'";
         String ConnectingString = @"connecting to Linepod";
         String PrintingString = "printing";
-        String PrintedString = @"Woohoo, your Linepod just finished printing.";
+        String PrintedString = @"Woohoo, our Linepod just finished printing. Next person please.";
         Timer timer;
 
         public enum ProcessState
@@ -94,7 +94,7 @@ namespace HPI.HCI.Bachelorproject1617.PhotoBooth
                 .On(Command.Outlines).Goto(ProcessState.PictureTaken).Execute(() =>
                 {
                     SpeakText(PictureTaking1);
-                    System.Threading.Thread.Sleep(5500);
+                    System.Threading.Thread.Sleep(5000);
                     PlayClickSound();
                     mainWindow.TakePictureOutlines(null, null);
                     SpeakText(PictureTaking2);
@@ -104,7 +104,7 @@ namespace HPI.HCI.Bachelorproject1617.PhotoBooth
                 .On(Command.Skeleton).Goto(ProcessState.PictureTaken).Execute(() =>
                 {
                     reader.Speak(PictureTaking1);
-                    System.Threading.Thread.Sleep(5500);
+                    System.Threading.Thread.Sleep(5000);
                     mainWindow.TakePictureSkeleton(null, null);
                     PlayClickSound();
                     reader.Speak(PictureTaking2);
@@ -124,6 +124,8 @@ namespace HPI.HCI.Bachelorproject1617.PhotoBooth
                 .On(Command.Back).Goto(ProcessState.PersonRecognized).Execute(() =>
                 {
                     SpeakText(BackToPersonRecognized);
+                    mainWindow.pictureTaken = false;
+                    mainWindow.AlreadyConvertedToSVG = false;
                     StartTimer(35000);
                 });
             fsm.In(ProcessState.Connected)
