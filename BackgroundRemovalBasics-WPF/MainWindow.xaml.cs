@@ -436,7 +436,7 @@ fill=""#000000"" stroke=""none"">
                     for (int i = 0; i < pixelData.Length; i += BackgroundRemovedColorFrame.BytesPerPixel)
                     {
                         pixelData[i] = 0;
-                        pixelData[i + 1] = 255;
+                        pixelData[i + 1] = 102;
                         pixelData[i + 2] = 0;
                     }
 
@@ -856,7 +856,7 @@ fill=""#000000"" stroke=""none"">
                 {
                     if (skel.TrackingState == SkeletonTrackingState.Tracked)
                     {
-                        String svgString = this.GenerateSkeletonSVG(skel);
+                        String svgString = GenerateSkeletonSVG(skel);
                         svgImage = svgString;
                         //this.SendSvg(svgString);
                     }
@@ -1034,7 +1034,7 @@ fill=""#000000"" stroke=""none"">
             return result;
         }
 
-        public void Connect(){
+        public void BluetoothConnect(){
 
 
             
@@ -1186,7 +1186,7 @@ fill=""#000000"" stroke=""none"">
 
                 if (this.checkBoxSkeleton.IsChecked.GetValueOrDefault())
                 {
-                    skeletons = new Skeleton[0];
+                    
 
                     using (SkeletonFrame skeletonFrame = e.OpenSkeletonFrame())
                     {
@@ -1194,13 +1194,17 @@ fill=""#000000"" stroke=""none"">
                         {
                             skeletons = new Skeleton[skeletonFrame.SkeletonArrayLength];
                             skeletonFrame.CopySkeletonDataTo(skeletons);
-                        } 
+                        }
+                        else
+                        {
+                            skeletons = new Skeleton[0];
+                        }
                     }
 
                     using (DrawingContext dc = this.drawingGroup.Open())
                     {
                         // Draw a transparent background to set the render size
-                        dc.DrawRectangle(Brushes.Black, null, new Rect(0.0, 0.0, RenderWidth, RenderHeight));
+                        dc.DrawRectangle(Brushes.White, null, new Rect(0.0, 0.0, RenderWidth, RenderHeight));
 
                         bool noSkelTracked = true;
                         if (skeletons.Length != 0)
@@ -1250,7 +1254,7 @@ fill=""#000000"" stroke=""none"">
 
         }
 
-        private String GenerateSkeletonSVG(Skeleton skel)
+        private static String GenerateSkeletonSVG(Skeleton skel)
         {
             SvgDocument doc = new SvgDocument()
             {
@@ -1318,29 +1322,33 @@ fill=""#000000"" stroke=""none"">
             AddJointsToPath(path, legs, 100);
 
             Console.WriteLine("svg output");
-            float deltaX = leftHand.Position.X - leftElbow.Position.X;
-            float deltaY = leftHand.Position.Y - leftElbow.Position.Y;
-            float deltaZ = leftHand.Position.Z - leftElbow.Position.Z;
-
-            float distance = (float)Math.Sqrt(deltaX * deltaX + deltaY * deltaY + deltaZ * deltaZ);
-            float headRadius = (float)(distance * scale / 2.5);
-            foreach (SvgPathSegment element in path.PathData)
-            {
-
-                Console.WriteLine(element.ToString());
-
-            }
-
-            Console.WriteLine("svg output end");
-
-
+            
             //calculate intersecion point of head and neck
             //double shoulderToHead = Math.Sqrt(Math.Pow(head.Position.X - shoulderCenter.Position.X,2) + Math.Pow(head.Position.Y - shoulderCenter.Position.Y,2));
+            /*float deltaX = leftHand.Position.X - leftElbow.Position.X;
+            float deltaY = leftHand.Position.Y - leftElbow.Position.Y;
+            float deltaZ = leftHand.Position.Z - leftElbow.Position.Z;
+            float distance = (float)Math.Sqrt(deltaX * deltaX + deltaY * deltaY + deltaZ * deltaZ);
+            float headRadius = (float)(distance * scale / 2.5);
             Vector headVec = new Vector(head.Position.X, head.Position.Y);
             Vector distVector = headVec - new Vector(shoulderCenter.Position.X, shoulderCenter.Position.Y);
             distVector.Normalize();
             Vector intersectingPoint = headVec - distVector * headRadius;
+            */
+            PointF headPointOnScreen = new PointF(TranslatePosition(head.Position.X), TranslatePosition(head.Position.Y));
+            PointF shoulderPointOnScreen = new PointF(TranslatePosition(shoulderCenter.Position.X), TranslatePosition(shoulderCenter.Position.Y));
+            double deltaX = headPointOnScreen.X - shoulderPointOnScreen.X;
+            double deltaY = headPointOnScreen.Y - shoulderPointOnScreen.Y;
+            float distance = (float)Math.Sqrt(deltaX * deltaX + deltaY * deltaY);
+            float headRadius = (float)(distance / 2);
+            Vector headVec = new Vector(headPointOnScreen.X, headPointOnScreen.Y);
+            Vector shoulderVec = new Vector(shoulderPointOnScreen.X, shoulderPointOnScreen.Y);
+            Vector distVector = shoulderVec - headVec;
+            distVector.Normalize();
 
+
+            Vector intersectingPoint = shoulderVec - distVector * headRadius;
+            PointF intersectingPointF = new PointF((float)intersectingPoint.X, (float)intersectingPoint.Y);
             SvgCircle headCircle = new SvgCircle()
             {
                 Radius = headRadius,
@@ -1351,13 +1359,22 @@ fill=""#000000"" stroke=""none"">
                 CenterY = new Svg.SvgUnit(TranslatePosition(head.Position.Y)),
                 StrokeWidth = 1
             };
-            //add the neck
-            path.PathData.Add(new SvgMoveToSegment(new PointF(TranslatePosition((float)intersectingPoint.X), TranslatePosition((float)intersectingPoint.Y))));
-            path.PathData.Add(new SvgLineSegment(new PointF(TranslatePosition(shoulderCenter.Position.X), TranslatePosition(shoulderCenter.Position.Y)), new PointF(TranslatePosition((float)intersectingPoint.X), TranslatePosition((float)intersectingPoint.Y))));
             doc.Children.Add(path);
 
 
+            SvgPath path2 = new SvgPath()
+            {
+                FillOpacity = 0,
+                Stroke = new SvgColourServer(System.Drawing.Color.Black)
+            };
+            //add the neck
+            path2.PathData.Add(new SvgMoveToSegment(shoulderPointOnScreen));
+            path2.PathData.Add(new SvgLineSegment(shoulderPointOnScreen, intersectingPointF));
+            
+
+
             doc.Children.Add(headCircle);
+            doc.Children.Add(path2);
             var stream = new MemoryStream();
             doc.Write(stream);
             Console.WriteLine("SVG from skeleton " + Encoding.UTF8.GetString(stream.GetBuffer()));
@@ -1365,7 +1382,7 @@ fill=""#000000"" stroke=""none"">
 
         }
 
-        private void AddJointsToPath(SvgPath path, List<Joint> joints, int scale)
+        private static void AddJointsToPath(SvgPath path, List<Joint> joints, int scale)
         {
             path.PathData.Add(new SvgMoveToSegment(new PointF(TranslatePosition(joints[0].Position.X), TranslatePosition(joints[0].Position.Y))));
             for (var i = 0; i < joints.Count - 1; i++)
@@ -1377,7 +1394,7 @@ fill=""#000000"" stroke=""none"">
             }
         }
 
-        private float TranslatePosition(float pos)
+        private static float TranslatePosition(float pos)
         {
 
             return svgHeight - ((pos + 1) * scale);
@@ -1392,7 +1409,7 @@ fill=""#000000"" stroke=""none"">
         private void DrawBonesAndJoints(Skeleton skeleton, DrawingContext drawingContext)
         {
             // Render Torso
-            this.DrawBone(skeleton, drawingContext, JointType.Head, JointType.ShoulderCenter);
+            //this.DrawBone(skeleton, drawingContext, JointType.Head, JointType.ShoulderCenter);
             this.DrawBone(skeleton, drawingContext, JointType.ShoulderCenter, JointType.ShoulderLeft);
             this.DrawBone(skeleton, drawingContext, JointType.ShoulderCenter, JointType.ShoulderRight);
             this.DrawBone(skeleton, drawingContext, JointType.ShoulderCenter, JointType.Spine);
@@ -1439,6 +1456,51 @@ fill=""#000000"" stroke=""none"">
                     drawingContext.DrawEllipse(drawBrush, null, this.SkeletonPointToScreen(joint.Position), JointThickness, JointThickness);
                 }
             }
+
+            //render head
+            Joint leftHand = skeleton.Joints[JointType.HandLeft];
+            Joint leftElbow = skeleton.Joints[JointType.ElbowLeft];
+
+            Joint head = skeleton.Joints[JointType.Head];
+            Joint shoulderCenter = skeleton.Joints[JointType.ShoulderCenter];
+
+            //assumes that head radius fits 4 times in the distance between hand and elbow
+            /*float deltaX = leftHand.Position.X - leftElbow.Position.X;
+            float deltaY = leftHand.Position.Y - leftElbow.Position.Y;
+            float deltaZ = leftHand.Position.Z - leftElbow.Position.Z;
+            float distance = (float)Math.Sqrt(deltaX * deltaX + deltaY * deltaY + deltaZ * deltaZ);
+            float headRadius = (float)(distance * scale * 1.5);*/
+            
+            
+
+            Pen drawPen = this.inferredBonePen;
+            if (head.TrackingState == JointTrackingState.Tracked && shoulderCenter.TrackingState == JointTrackingState.Tracked)
+            {
+                drawPen = this.trackedBonePen;
+                Brush drawBrush = this.trackedJointBrush;
+                
+                if (drawBrush != null)
+                {
+                    Point headPointOnScreen = SkeletonPointToScreen(head.Position);
+                    Point shoulderPointOnScreen = SkeletonPointToScreen(shoulderCenter.Position);
+                    double deltaX = headPointOnScreen.X - shoulderPointOnScreen.X;
+                    double deltaY = headPointOnScreen.Y - shoulderPointOnScreen.Y;
+                    float distance = (float)Math.Sqrt(deltaX * deltaX + deltaY * deltaY);
+                    float headRadius = (float)(distance/2);
+                    Vector headVec = new Vector(headPointOnScreen.X, headPointOnScreen.Y);
+                    Vector shoulderVec = new Vector(shoulderPointOnScreen.X, shoulderPointOnScreen.Y);
+                    Vector distVector = shoulderVec - headVec;
+                    distVector.Normalize();
+
+
+                    Vector intersectingPoint = headVec + distVector * headRadius;
+                    
+                    drawingContext.DrawEllipse(drawBrush, drawPen, this.SkeletonPointToScreen(head.Position), headRadius,headRadius);
+                    drawingContext.DrawLine(drawPen, new Point(intersectingPoint.X,intersectingPoint.Y), shoulderPointOnScreen);
+
+                }
+            }
+            
         }
 
         /// <summary>
@@ -1450,10 +1512,13 @@ fill=""#000000"" stroke=""none"">
         {
             // Convert point to depth space.  
             // We are not using depth directly, but we do want the points in our 640x480 output resolution.
-            
-            DepthImagePoint depthPoint = this.sensor.CoordinateMapper.MapSkeletonPointToDepthPoint(skelpoint, DepthImageFormat.Resolution640x480Fps30);
+            if (sensor != null)
+            {
+                DepthImagePoint depthPoint = this.sensor.CoordinateMapper.MapSkeletonPointToDepthPoint(skelpoint, DepthImageFormat.Resolution640x480Fps30);
 
-            return new Point(depthPoint.X, depthPoint.Y);
+                return new Point(depthPoint.X, depthPoint.Y);
+            }
+            return new Point(0, 0);
         }
 
         /// <summary>

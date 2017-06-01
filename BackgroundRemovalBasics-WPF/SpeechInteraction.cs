@@ -15,7 +15,7 @@ namespace HPI.HCI.Bachelorproject1617.PhotoBooth
         //String NoPersonRecognizedRepeat = @"Huhu, is someone there? I don't see anyone... Don't be shy, just step about 1 meter in front of the kinect-camera and we can do an awesome tactile snapshot of you! If you don't get recognized, try to look more like a see star by spreading your arms away from you";
         String NoPersonRecognizedRepeat = @"Huhu, is someone there? Just step about 1 meter in front of the kinect-camera and we can do an awesome tactile snapshot of you! If you want get a mate and do a cool pose together";
         //String PersonRecognizedTransition = @"Woop woop! I recognized a person!! I would suggest to print a picture of your silhouette now, what do you think? If you want that too, just say 'outlines' . Otherwise we can also print you as a stick-figure, which looks also pretty cool if you do a crazy gesture. If you want to try that, just say 'skeleton'";
-        String PersonRecognizedTransition = @"Woop woop! I recognized a person!! If you want a print of your silhouette now, just say 'outlines'. If you would rather have a picture of yourself as a stick-figure just say 'skeleton'";
+        String PersonRecognizedTransition = @"Woop woop! I recognized a person!! Please tell me if you want to print your outlines or your skeleton?";
         String PersonLeft = @"Oohh, where did you go? I can't see you anymore";
         //String PersonRecognizedRepeat = @"hey, are you still there? Don't forget, I would suggest to print your silhouette now, what do you think? If you want that too, just say 'outlines' . Otherwise we can also print you as a stick-figure, which looks also pretty cool if you do a crazy gesture. If you want to do that, just say 'skeleton'";
         String PersonRecognizedRepeat = @"hey, are you still there? Don't forget, if you want to print your silhouette now, just say 'outlines' . Otherwise we can also print you as a stick-figure if you say 'skeleton'"; 
@@ -97,6 +97,7 @@ namespace HPI.HCI.Bachelorproject1617.PhotoBooth
                     System.Threading.Thread.Sleep(5000);
                     PlayClickSound();
                     mainWindow.TakePictureOutlines(null, null);
+
                     SpeakText(PictureTaking2);
                     StartTimer(35000);
                     //take picture outlines
@@ -105,6 +106,7 @@ namespace HPI.HCI.Bachelorproject1617.PhotoBooth
                 {
                     reader.Speak(PictureTaking1);
                     System.Threading.Thread.Sleep(5000);
+                    mainWindow.TakePictureOutlines(null, null);
                     mainWindow.TakePictureSkeleton(null, null);
                     PlayClickSound();
                     reader.Speak(PictureTaking2);
@@ -114,7 +116,7 @@ namespace HPI.HCI.Bachelorproject1617.PhotoBooth
             fsm.In(ProcessState.PictureTaken)
                 .On(Command.Print).Goto(ProcessState.Connected).Execute(() => {
                     SpeakText(ConnectingString);
-                    mainWindow.Connect();
+                    mainWindow.BluetoothConnect();
                 })
                 .On(Command.Repeat).Execute(() =>
                 {
