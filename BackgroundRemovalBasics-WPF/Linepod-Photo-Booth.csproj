@@ -102,6 +102,8 @@
     </ApplicationDefinition>
     <Compile Include="Class1.cs" />
     <Compile Include="Class2.cs" />
+    <Compile Include="SkeletonHandler.cs" />
+    <Compile Include="TCPConnection.cs" />
     <Compile Include="SpeechInteraction.cs" />
     <Compile Include="SkeletonWindow.xaml.cs">
       <DependentUpon>SkeletonWindow.xaml</DependentUpon>

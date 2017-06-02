@@ -107,8 +107,8 @@
                 <Image Name="Image" Width="640" Height="480"/>
             </Viewbox>
         </Grid>
-        <Button Grid.Row="2" Style="{StaticResource SnapshotButton}" Content="Print skeleton" Height="32" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,7,306,11" Name="buttonPrintSkel"  Click="TakePictureSkeleton" Grid.Column="2" Width="136" />
-        <Button Grid.Row="2" Style="{StaticResource SnapshotButton}" Content="Print outlines" Height="32" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,7,160,11" Name="buttonPrintOutlines"  Click="TakePictureOutlines" Grid.Column="2" Width="130
+        <Button Grid.Row="2" Style="{StaticResource SnapshotButton}" Content="Print skeleton" Height="32" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,7,306,11" Name="buttonPrintSkel"  Click="ButtonSkeletonTriggerPhoto" Grid.Column="2" Width="136" />
+        <Button Grid.Row="2" Style="{StaticResource SnapshotButton}" Content="Print outlines" Height="32" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,7,160,11" Name="buttonPrintOutlines"  Click="ButtonOutlinesTriggerPhoto" Grid.Column="2" Width="130
                 " />
         <Button Grid.Row="2" Style="{StaticResource SnapshotButton}" Content="Print both    " Height="32" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,7,10,11" Name="buttonPrintBoth"  Click="ButtonPrintBoth" Grid.Column="2" Width="130
                 " />
