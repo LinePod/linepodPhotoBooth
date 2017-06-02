@@ -424,11 +424,15 @@ fill=""#000000"" stroke=""none"">
                     }
                     else
                     {
-                        if (!AlreadyConvertedToSVG)
+                        if (speechInteraction.outlines)
                         {
-                            PrintSVGOutlines();
-                            AlreadyConvertedToSVG = true;
+                            if (!AlreadyConvertedToSVG)
+                            {
+                                PrintSVGOutlines();
+                                AlreadyConvertedToSVG = true;
+                            }
                         }
+                        
                         
                     }
 
@@ -784,8 +788,8 @@ fill=""#000000"" stroke=""none"">
         /// <param name="e">event arguments</param>
         private void ButtonPrintBoth(object sender, RoutedEventArgs e)
         {
-            TakePictureOutlines(null,null);
-            TakePictureSkeleton(null, null);
+            TakePictureOutlines();
+            TakePictureSkeleton();
 
             
         }
@@ -805,7 +809,7 @@ fill=""#000000"" stroke=""none"">
 
         }
 
-        public void TakePictureOutlines(object sender, RoutedEventArgs e)
+        public void TakePictureOutlines()
         {
             if (null == this.sensorChooser || null == this.sensorChooser.Kinect)
             {
@@ -829,7 +833,7 @@ fill=""#000000"" stroke=""none"">
 
 
 
-        public void TakePictureSkeleton(object sender, RoutedEventArgs e)
+        public void TakePictureSkeleton()
         {
             Console.WriteLine("Taking picture of skeleton");
             if (this.sensor.SkeletonStream.IsEnabled )
@@ -847,10 +851,11 @@ fill=""#000000"" stroke=""none"">
                     Console.WriteLine("found 1 skeleton");
                     if (skel.TrackingState == SkeletonTrackingState.Tracked)
                     {
-                        Console.WriteLine("found tracked skeleton");
-                        String svgString = SkeletonHandler.GenerateSkeletonSVG(skel);
-                        svgImage = svgString;
+                       Console.WriteLine("found tracked skeleton");
+                        String svgString = GenerateSkeletonSVG(skel);
+                        this.svgImage = svgString;
                         //this.SendSvg(svgString);
+                        break;
                     }
                 }
                 Console.WriteLine("all skeletons done");
@@ -1201,7 +1206,7 @@ fill=""#000000"" stroke=""none"">
 
                 if (this.checkBoxSkeleton.IsChecked.GetValueOrDefault())
                 {
-                    
+                    skeletons = new Skeleton[0];
 
                     using (SkeletonFrame skeletonFrame = e.OpenSkeletonFrame())
                     {
@@ -1210,12 +1215,12 @@ fill=""#000000"" stroke=""none"">
                             skeletons = new Skeleton[skeletonFrame.SkeletonArrayLength];
                             skeletonFrame.CopySkeletonDataTo(skeletons);
                         }
-                        else
+                        /*else
                         {
                               skeletons = new Skeleton[0];
 
                             
-                        }
+                        }*/
                     }
 
                     using (DrawingContext dc = this.drawingGroup.Open())
@@ -1228,6 +1233,140 @@ fill=""#000000"" stroke=""none"">
 
                 
             }
+
+        }
+
+
+        public static String GenerateSkeletonSVG(Skeleton skel)
+        {
+            SvgDocument doc = new SvgDocument()
+            {
+                Width = svgWidth,
+                Height = svgHeight
+            };
+
+            SvgPath path = new SvgPath()
+            {
+                FillOpacity = 0,
+                Stroke = new SvgColourServer(System.Drawing.Color.Black)
+            };
+
+            Joint leftHand = skel.Joints[JointType.HandLeft];
+            Joint rightHand = skel.Joints[JointType.HandRight];
+            Joint leftWrist = skel.Joints[JointType.WristLeft];
+            Joint rightWrist = skel.Joints[JointType.WristRight];
+            Joint leftElbow = skel.Joints[JointType.ElbowLeft];
+            Joint rightElbow = skel.Joints[JointType.ElbowRight];
+            Joint leftShoulder = skel.Joints[JointType.ShoulderLeft];
+            Joint rightShoulder = skel.Joints[JointType.ShoulderRight];
+            Joint leftFoot = skel.Joints[JointType.FootLeft];
+            Joint rightFoot = skel.Joints[JointType.FootRight];
+            Joint leftAnkle = skel.Joints[JointType.AnkleLeft];
+            Joint rightAnkle = skel.Joints[JointType.AnkleRight];
+            Joint leftKnee = skel.Joints[JointType.KneeLeft];
+            Joint rightKnee = skel.Joints[JointType.KneeRight];
+            Joint leftHip = skel.Joints[JointType.HipLeft];
+            Joint rightHip = skel.Joints[JointType.HipRight];
+            Joint head = skel.Joints[JointType.Head];
+            Joint shoulderCenter = skel.Joints[JointType.ShoulderCenter];
+            Joint spine = skel.Joints[JointType.Spine];
+            Joint hipCenter = skel.Joints[JointType.HipCenter];
+
+            List<Joint> arms = new List<Joint>();
+            arms.Add(leftHand);
+            arms.Add(leftWrist);
+            arms.Add(leftElbow);
+            arms.Add(leftShoulder);
+            arms.Add(shoulderCenter);
+            arms.Add(rightShoulder);
+            arms.Add(rightElbow);
+            arms.Add(rightWrist);
+            arms.Add(rightHand);
+
+            List<Joint> back = new List<Joint>();
+            //back.Add(head);
+            back.Add(shoulderCenter);
+            back.Add(spine);
+            back.Add(hipCenter);
+
+            List<Joint> legs = new List<Joint>();
+            legs.Add(leftFoot);
+            legs.Add(leftAnkle);
+            legs.Add(leftKnee);
+            legs.Add(leftHip);
+            legs.Add(hipCenter);
+            legs.Add(rightHip);
+            legs.Add(rightKnee);
+            legs.Add(rightAnkle);
+            legs.Add(rightFoot);
+
+            SkeletonHandler.AddJointsToPath(path, arms, 100);
+            SkeletonHandler.AddJointsToPath(path, back, 100);
+            SkeletonHandler.AddJointsToPath(path, legs, 100);
+
+            Console.WriteLine("svg output");
+
+            //calculate intersecion point of head and neck
+            //double shoulderToHead = Math.Sqrt(Math.Pow(head.Position.X - shoulderCenter.Position.X,2) + Math.Pow(head.Position.Y - shoulderCenter.Position.Y,2));
+            /*float deltaX = leftHand.Position.X - leftElbow.Position.X;
+            float deltaY = leftHand.Position.Y - leftElbow.Position.Y;
+            float deltaZ = leftHand.Position.Z - leftElbow.Position.Z;
+            float distance = (float)Math.Sqrt(deltaX * deltaX + deltaY * deltaY + deltaZ * deltaZ);
+            float headRadius = (float)(distance * scale / 2.5);
+            Vector headVec = new Vector(head.Position.X, head.Position.Y);
+            Vector distVector = headVec - new Vector(shoulderCenter.Position.X, shoulderCenter.Position.Y);
+            distVector.Normalize();
+            Vector intersectingPoint = headVec - distVector * headRadius;
+            */
+            PointF headPointOnScreen = new PointF(SkeletonHandler.TranslatePosition(head.Position.X), SkeletonHandler.TranslatePosition(head.Position.Y));
+            PointF shoulderPointOnScreen = new PointF(SkeletonHandler.TranslatePosition(shoulderCenter.Position.X), SkeletonHandler.TranslatePosition(shoulderCenter.Position.Y));
+            double deltaX = headPointOnScreen.X - shoulderPointOnScreen.X;
+            double deltaY = headPointOnScreen.Y - shoulderPointOnScreen.Y;
+            float distance = (float)Math.Sqrt(deltaX * deltaX + deltaY * deltaY);
+            float headRadius = (float)(distance / 2);
+            Vector headVec = new Vector(headPointOnScreen.X, headPointOnScreen.Y);
+            Vector shoulderVec = new Vector(shoulderPointOnScreen.X, shoulderPointOnScreen.Y);
+            Vector distVector = shoulderVec - headVec;
+            distVector.Normalize();
+
+
+            Vector intersectingPoint = shoulderVec - distVector * headRadius;
+            PointF intersectingPointF = new PointF((float)intersectingPoint.X, (float)intersectingPoint.Y);
+            SvgCircle headCircle = new SvgCircle()
+            {
+                Radius = headRadius,
+
+                FillOpacity = 0,
+                Stroke = new SvgColourServer(System.Drawing.Color.Black),
+                CenterX = new Svg.SvgUnit(SkeletonHandler.TranslatePosition(head.Position.X)),
+                CenterY = new Svg.SvgUnit(SkeletonHandler.TranslatePosition(head.Position.Y)),
+                StrokeWidth = 1
+            };
+            doc.Children.Add(path);
+
+
+            SvgPath path2 = new SvgPath()
+            {
+                FillOpacity = 0,
+                Stroke = new SvgColourServer(System.Drawing.Color.Black)
+            };
+            //add the neck
+            path2.PathData.Add(new SvgMoveToSegment(shoulderPointOnScreen));
+            path2.PathData.Add(new SvgLineSegment(shoulderPointOnScreen, intersectingPointF));
+
+
+
+            doc.Children.Add(headCircle);
+            doc.Children.Add(path2);
+            var stream = new MemoryStream();
+            doc.Write(stream);
+            //Console.WriteLine("SVG from skeleton " + Encoding.UTF8.GetString(stream.GetBuffer()));
+
+            String svgString = Encoding.UTF8.GetString(stream.GetBuffer());
+            stream.Close();
+            
+
+            return svgString;
 
         }
 

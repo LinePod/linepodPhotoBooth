@@ -14,7 +14,7 @@ namespace HPI.HCI.Bachelorproject1617.PhotoBooth
     public class SpeechInteraction
     {
         bool isSpeaking = false;
-        bool outlines = false;
+        public bool outlines = false;
         //String NoPersonRecognizedRepeat = @"Huhu, is someone there? I don't see anyone... Don't be shy, just step about 1 meter in front of the kinect-camera and we can do an awesome tactile snapshot of you! If you don't get recognized, try to look more like a see star by spreading your arms away from you";
         //String NoPersonRecognizedRepeat = @"Huhu, is someone there? Just step about 1 meter in front of the kinect-camera and we can do an awesome tactile snapshot of you! If you want get a mate and do a cool pose together";
         String NoPersonRecognizedRepeat = @"Huhu, is someone there? Just step about 1 meter in front of the kinect-camera and we can do an awesome tactile snapshot of you!";
@@ -300,7 +300,7 @@ namespace HPI.HCI.Bachelorproject1617.PhotoBooth
 
             System.Threading.Thread.Sleep(5000);
             PlayClickSound();
-            mainWindow.TakePictureSkeleton(null, null);
+            mainWindow.TakePictureSkeleton();
             
             SpeakText(PictureTaking2);
             
@@ -312,7 +312,7 @@ namespace HPI.HCI.Bachelorproject1617.PhotoBooth
             System.Threading.Thread.Sleep(5000);
             
             PlayClickSound();
-            mainWindow.TakePictureOutlines(null, null);
+            mainWindow.TakePictureOutlines();
 
             SpeakText(PictureTaking2);
             
