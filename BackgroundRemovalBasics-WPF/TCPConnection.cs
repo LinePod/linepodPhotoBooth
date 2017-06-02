@@ -7,6 +7,8 @@ using System.Net;
 using System.Net.Sockets;
 using System.Threading;
 using System.Text;
+using HPI.HCI.Bachelorproject1617.PhotoBooth;
+using System.Windows;
 
 
 
@@ -40,9 +42,15 @@ public class AsynchronousClient {
     private static ManualResetEvent receiveDone = 
         new ManualResetEvent(false);
 
+    SpeechInteraction speechInteraction;
+    public AsynchronousClient(SpeechInteraction speechInteraction)
+    {
+        this.speechInteraction = speechInteraction;
+    }
+
     // The response from the remote device.
     private static String response = String.Empty;
-    public static Socket StartClient() {
+    public Socket StartClient() {
         // Connect to a remote device.
         try {
 
@@ -61,7 +69,8 @@ public class AsynchronousClient {
             // Send test data to the remote device.
             //Send(client,"This is a test<EOF>");
             //sendDone.WaitOne();
-
+            Thread t = new Thread(new ParameterizedThreadStart(Receive));
+            t.Start(client);
             // Receive the response from the remote device.
             //Receive(client);
             //receiveDone.WaitOne();
@@ -77,6 +86,7 @@ public class AsynchronousClient {
         }
         return null; ;
     }
+
 
     public static void StopClient(Socket client)
     {
@@ -102,7 +112,8 @@ public class AsynchronousClient {
         }
     }
 
-    private static void Receive(Socket client) {
+    private void Receive(Object clientObj) {
+        Socket client = (Socket)clientObj;
         try {
             // Create the state object.
             AsyncCallback callback = new AsyncCallback(ReceiveCallback);
@@ -122,7 +133,7 @@ public class AsynchronousClient {
         }
     }
 
-    private static void ReceiveCallback( IAsyncResult ar ) {
+    private void ReceiveCallback( IAsyncResult ar ) {
         try {
             // Retrieve the state object and the client socket 
             // from the asynchronous state object.
@@ -187,9 +198,9 @@ public class AsynchronousClient {
                     {
                         case 0:
                             Console.WriteLine("Finished printing");
-                            /*Action lambda = () => speechInteraction.fsm.Fire(SpeechInteraction.Command.Printed);
+                            Action lambda = () => speechInteraction.fsm.Fire(SpeechInteraction.Command.Printed);
                             Application.Current.Dispatcher.Invoke(
-                            (Delegate)lambda);*/
+                            (Delegate)lambda);
                             break;
 
 

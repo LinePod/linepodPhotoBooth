@@ -128,7 +128,7 @@ fill=""#000000"" stroke=""none"">
 
         SkeletonHandler skeletonHandler;
 
-
+        AsynchronousClient asyncClient;
         
         /// <summary>
         /// Active Kinect sensor
@@ -238,7 +238,8 @@ fill=""#000000"" stroke=""none"">
             }
             else
             {
-                //client = AsynchronousClient.StartClient();
+                asyncClient = new AsynchronousClient(speechInteraction);
+                InitAsyncTCPClient();
             }
 
             
@@ -247,6 +248,19 @@ fill=""#000000"" stroke=""none"">
             lastSkeletonTimeStamp = DateTime.Now;
         }
 
+
+        private void InitAsyncTCPClient()
+        {
+            try
+            {
+                
+                client = asyncClient.StartClient();
+            }
+            catch (System.Net.Sockets.SocketException)
+            {
+                InitAsyncTCPClient();
+            }
+        }
         
 
         /// <summary>
