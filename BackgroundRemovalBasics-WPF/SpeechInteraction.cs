@@ -301,6 +301,7 @@ namespace HPI.HCI.Bachelorproject1617.PhotoBooth
             System.Threading.Thread.Sleep(5000);
             PlayClickSound();
             mainWindow.TakePictureSkeleton();
+            System.Threading.Thread.Sleep(1000);
             
             SpeakText(PictureTaking2);
             
@@ -313,6 +314,7 @@ namespace HPI.HCI.Bachelorproject1617.PhotoBooth
             
             PlayClickSound();
             mainWindow.TakePictureOutlines();
+            System.Threading.Thread.Sleep(1000);
 
             SpeakText(PictureTaking2);
             

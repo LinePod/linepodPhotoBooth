@@ -34,6 +34,8 @@ namespace Hpi.Hci.Bachelorproject1617.PhotoBooth
     using HPI.HCI.Bachelorproject1617.PhotoBooth;
     using System.Timers;
     using System.Linq;
+    using System.Xml;
+    using System.Text.RegularExpressions;
 
 
 
@@ -45,14 +47,14 @@ namespace Hpi.Hci.Bachelorproject1617.PhotoBooth
     {
 
         public bool AlreadyConvertedToSVG = false;
-        public bool BluetoothOn = false;
+        public bool BluetoothOn = true;
         Socket client;
 
         //skeleton vars 
         
         private const int scale = 100;
-        private const int svgWidth = 200;
-        private const int svgHeight = 200;
+        private const int svgWidth = 640;
+        private const int svgHeight = 480;
         private static BluetoothClient thisDevice;
         private Boolean alreadyPaired = false;
         BluetoothDeviceInfo device;
@@ -504,8 +506,57 @@ fill=""#000000"" stroke=""none"">
             }
 
             //Bitmap bmp = BmpFromByteArray(pixelData, backgroundRemovedFrame.Width, backgroundRemovedFrame.Height);
-            GenerateOutlineSVG(path);
+            String svgOutlineString = GenerateOutlineSVG(path);
+            Console.WriteLine("before adding frame");
+            AddSVGFrame(svgOutlineString);
 
+        }
+
+        private String AddSVGFrame(String svg)
+        {
+            Console.WriteLine("adding svg frame");
+            //String svgFrame = "<?xml version=\"1.0\" standalone=\"no\"?> <!DOCTYPE svg PUBLIC \"-//W3C//DTD SVG 20010904//EN\" \"http://www.w3.org/TR/2001/REC-SVG-20010904/DTD/svg10.dtd\"> <svg version=\"1.0\" width=\"200\" height=\"130\" viewBox=\"0 0 640 480\" xmlns=\"http://www.w3.org/2000/svg\" preserveAspectRatio=\"xMidYMid meet\"> </svg>";
+            //String svgFrame = @"<?xml version=""1.0"" standalone=""no""?> <!DOCTYPE svg PUBLIC ""-//W3C//DTD SVG 20010904//EN"" ""http://www.w3.org/TR/2001/REC-SVG-20010904/DTD/svg10.dtd""> <svg version=""1.0"" width=""200"" height=""130"" viewBox=""0 0 640 480"" xmlns=""http://www.w3.org/2000/svg"" preserveAspectRatio=""xMidYMid meet""> </svg>";
+            XmlDocument doc = new XmlDocument();
+            Console.WriteLine("frame");
+            if (speechInteraction.outlines)
+            {
+                doc.LoadXml("<?xml version=\"1.0\" standalone=\"no\"?> <svg version=\"1.0\" width=\"200\" height=\"130\" viewBox=\"0 0 640 480\" xmlns=\"http://www.w3.org/2000/svg\" preserveAspectRatio=\"xMidYMid meet\"> </svg>");
+            }
+            else
+            {
+                doc.LoadXml("<?xml version=\"1.0\" standalone=\"no\"?> <svg version=\"1.0\" width=\"200\" height=\"130\" viewBox=\"0 0 2 2\" xmlns=\"http://www.w3.org/2000/svg\" preserveAspectRatio=\"xMidYMid meet\"> </svg>");
+            }
+            
+            Console.WriteLine("still alive");
+            
+            string pattern = "<!.*>";
+            string replacement = " ";
+            Regex rgx = new Regex(pattern);
+            Console.WriteLine("rgx match");
+            
+            Console.WriteLine(rgx.Match(svg));
+            //svg = rgx.Replace(svg, replacement);
+
+            //Remove comments
+            svg = svg.Replace("﻿<!DOCTYPE svg PUBLIC \"-//W3C//DTD SVG 1.1//EN\" \"http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd\">","");
+            svg = svg.Replace("<!DOCTYPE svg PUBLIC \"-//W3C//DTD SVG 20010904//EN\"\n \"http://www.w3.org/TR/2001/REC-SVG-20010904/DTD/svg10.dtd\">","");
+            svg = svg.Replace("viewBox=\"0 0 640.000000 480.000000\"", "");
+            XmlNode root = doc.DocumentElement;
+            Console.WriteLine("root " + root.OuterXml);
+            //Console.WriteLine(svg);
+
+            XmlDocument doc1 = new XmlDocument();
+            Console.WriteLine("________________________");
+            doc1.LoadXml(svg);
+            Console.WriteLine("________________________");
+            root.AppendChild(doc.ImportNode(doc1.DocumentElement, true));
+            Console.WriteLine("added svg frame ");
+            Console.WriteLine(doc.OuterXml);
+            svgImage = doc.OuterXml;
+
+            
+            return svgImage;
         }
 
 
@@ -629,9 +680,9 @@ fill=""#000000"" stroke=""none"">
             potrace.StandardInput.WriteLine(); //Without this line the input to Potrace won't go through.
             potrace.WaitForExit();
             String svgString = File.ReadAllText("Z:\\Daten\\Bachelorprojekt1617\\Kinect\\potrace-1.14.win64\\result.svg");
-            Console.WriteLine("SVG Outline Result " + svgString);
             //this.SendSvg(svgString);
             svgImage = svgString;
+            //Console.WriteLine(svgImage);
             return svgString;
         }
 
@@ -825,6 +876,7 @@ fill=""#000000"" stroke=""none"">
 
         public void TakePictureOutlines()
         {
+            speechInteraction.outlines = true;
             if (null == this.sensorChooser || null == this.sensorChooser.Kinect)
             {
                 return;
@@ -849,6 +901,7 @@ fill=""#000000"" stroke=""none"">
 
         public void TakePictureSkeleton()
         {
+            speechInteraction.outlines = false;
             Console.WriteLine("Taking picture of skeleton");
             if (this.sensor.SkeletonStream.IsEnabled )
             {
@@ -862,7 +915,6 @@ fill=""#000000"" stroke=""none"">
                 Console.WriteLine("Skel stream enabled");
                 foreach (Skeleton skel in skeletons)
                 {
-                    Console.WriteLine("found 1 skeleton");
                     if (skel.TrackingState == SkeletonTrackingState.Tracked)
                     {
                        Console.WriteLine("found tracked skeleton");
@@ -1251,7 +1303,7 @@ fill=""#000000"" stroke=""none"">
         }
 
 
-        public static String GenerateSkeletonSVG(Skeleton skel)
+        public String GenerateSkeletonSVG(Skeleton skel)
         {
             SvgDocument doc = new SvgDocument()
             {
@@ -1313,12 +1365,55 @@ fill=""#000000"" stroke=""none"">
             legs.Add(rightKnee);
             legs.Add(rightAnkle);
             legs.Add(rightFoot);
+/*
+            float xMin = float.MaxValue;
+            float xMax = 0;
+            float yMin = float.MaxValue;
+            float yMax = 0;
 
-            SkeletonHandler.AddJointsToPath(path, arms, 100);
-            SkeletonHandler.AddJointsToPath(path, back, 100);
-            SkeletonHandler.AddJointsToPath(path, legs, 100);
+            foreach (var joint in skel.Joints)
+            {
+                List<PointF> points = new List<PointF>() { joint., p.End };
+                foreach (var point in points)
+                {
+                    if (point.X < xMin)
+                    {
+                        xMin = point.X;
+                    }
+                    else if (point.X > xMax)
+                    {
+                        xMax = point.X;
+                    }
+                    if (point.Y < yMin)
+                    {
+                        yMin = point.Y;
+                    }
+                    else if (point.Y > yMax)
+                    {
+                        yMax = point.Y;
+                    }
+                }
+            }
+            if (headCircle.CenterX - headCircle.Radius < xMin)
+            {
+                xMin = headCircle.Center.X;
+            }
+            else if (headCircle.CenterX + headCircle.Radius > xMin)
+            {
+                xMax = headCircle.Center.X;
+            }
+            if (headCircle.CenterY - headCircle.Radius < yMin)
+            {
+                yMin = headCircle.Center.Y;
+            }
+            else if (headCircle.CenterY + headCircle.Radius > yMin)
+            {
+                yMax = headCircle.Center.Y;
+            }*/
 
-            Console.WriteLine("svg output");
+            skeletonHandler.AddJointsToPath(path, arms, 100);
+            skeletonHandler.AddJointsToPath(path, back, 100);
+            skeletonHandler.AddJointsToPath(path, legs, 100);
 
             //calculate intersecion point of head and neck
             //double shoulderToHead = Math.Sqrt(Math.Pow(head.Position.X - shoulderCenter.Position.X,2) + Math.Pow(head.Position.Y - shoulderCenter.Position.Y,2));
@@ -1332,8 +1427,8 @@ fill=""#000000"" stroke=""none"">
             distVector.Normalize();
             Vector intersectingPoint = headVec - distVector * headRadius;
             */
-            PointF headPointOnScreen = new PointF(SkeletonHandler.TranslatePosition(head.Position.X), SkeletonHandler.TranslatePosition(head.Position.Y));
-            PointF shoulderPointOnScreen = new PointF(SkeletonHandler.TranslatePosition(shoulderCenter.Position.X), SkeletonHandler.TranslatePosition(shoulderCenter.Position.Y));
+            PointF headPointOnScreen = new PointF(head.Position.X + 1, skeletonHandler.TranslatePosition(head.Position.Y));
+            PointF shoulderPointOnScreen = new PointF(shoulderCenter.Position.X +1, skeletonHandler.TranslatePosition(shoulderCenter.Position.Y));
             double deltaX = headPointOnScreen.X - shoulderPointOnScreen.X;
             double deltaY = headPointOnScreen.Y - shoulderPointOnScreen.Y;
             float distance = (float)Math.Sqrt(deltaX * deltaX + deltaY * deltaY);
@@ -1352,12 +1447,11 @@ fill=""#000000"" stroke=""none"">
 
                 FillOpacity = 0,
                 Stroke = new SvgColourServer(System.Drawing.Color.Black),
-                CenterX = new Svg.SvgUnit(SkeletonHandler.TranslatePosition(head.Position.X)),
-                CenterY = new Svg.SvgUnit(SkeletonHandler.TranslatePosition(head.Position.Y)),
+                CenterX = new Svg.SvgUnit(head.Position.X +1),
+                CenterY = new Svg.SvgUnit(skeletonHandler.TranslatePosition(head.Position.Y)),
                 StrokeWidth = 1
             };
-            doc.Children.Add(path);
-
+           
 
             SvgPath path2 = new SvgPath()
             {
@@ -1365,22 +1459,29 @@ fill=""#000000"" stroke=""none"">
                 Stroke = new SvgColourServer(System.Drawing.Color.Black)
             };
             //add the neck
-            path2.PathData.Add(new SvgMoveToSegment(shoulderPointOnScreen));
-            path2.PathData.Add(new SvgLineSegment(shoulderPointOnScreen, intersectingPointF));
+            path.PathData.Add(new SvgMoveToSegment(shoulderPointOnScreen));
+            path.PathData.Add(new SvgLineSegment(shoulderPointOnScreen, intersectingPointF));
 
-
-
+           
+            
+            doc.Children.Add(path);
             doc.Children.Add(headCircle);
-            doc.Children.Add(path2);
+            //doc.Children.Add(path2);
             var stream = new MemoryStream();
             doc.Write(stream);
             //Console.WriteLine("SVG from skeleton " + Encoding.UTF8.GetString(stream.GetBuffer()));
 
             String svgString = Encoding.UTF8.GetString(stream.GetBuffer());
             stream.Close();
-            
 
-            return svgString;
+            Console.WriteLine("svg output");
+            Debug.WriteLine(svgString);
+            Console.WriteLine("adding frame");
+            
+            String finalSvg = AddSVGFrame(svgString);
+
+
+            return finalSvg;
 
         }
 

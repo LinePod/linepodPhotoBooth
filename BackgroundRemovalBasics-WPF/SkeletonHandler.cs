@@ -95,22 +95,23 @@ namespace Hpi.Hci.Bachelorproject1617.PhotoBooth
 
         
 
-        public static void AddJointsToPath(SvgPath path, List<Joint> joints, int scale)
+        public void AddJointsToPath(SvgPath path, List<Joint> joints, int scale)
         {
-            path.PathData.Add(new SvgMoveToSegment(new PointF(TranslatePosition(joints[0].Position.X), TranslatePosition(joints[0].Position.Y))));
+            path.PathData.Add(new SvgMoveToSegment(new PointF(joints[0].Position.X +1, TranslatePosition(joints[0].Position.Y))));
             for (var i = 0; i < joints.Count - 1; i++)
             {
                 var start = joints[i];
                 var end = joints[i + 1];
 
-                path.PathData.Add(new SvgLineSegment(new PointF(TranslatePosition(start.Position.X), TranslatePosition(start.Position.Y)), new PointF(TranslatePosition(end.Position.X), TranslatePosition(end.Position.Y))));
+                path.PathData.Add(new SvgLineSegment(new PointF(start.Position.X +1 , TranslatePosition(start.Position.Y)), new PointF(end.Position.X +1, TranslatePosition(end.Position.Y))));
             }
         }
 
-        public static float TranslatePosition(float pos)
+        public float TranslatePosition(float pos)
         {
-
-            return svgHeight - ((pos + 1) * scale);
+            //return ((pos + 1) * scale);
+            return (pos * -1) +1;
+            //return svgHeight - ((pos + 1) * scale);
 
         }
 
