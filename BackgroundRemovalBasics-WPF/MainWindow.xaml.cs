@@ -58,6 +58,7 @@ namespace Hpi.Hci.Bachelorproject1617.PhotoBooth
         private static BluetoothClient thisDevice;
         private Boolean alreadyPaired = false;
         BluetoothDeviceInfo device;
+        int nearestSkeleton = 0;
 
         public String svgImage = @"<?xml version=""1.0"" standalone=""no""?>
 <!DOCTYPE svg PUBLIC ""-//W3C//DTD SVG 20010904//EN""
@@ -349,8 +350,8 @@ fill=""#000000"" stroke=""none"">
                 return;
             }
 
-            if (this.checkBoxDepthStream.IsChecked.GetValueOrDefault())
-            {
+            /*if (this.checkBoxDepthStream.IsChecked.GetValueOrDefault())
+            {*/
 
             
                 try
@@ -392,7 +393,7 @@ fill=""#000000"" stroke=""none"">
                 {
                     // Ignore the exception. 
                 }
-            }
+            //}
         }
 
         /// <summary>
@@ -589,7 +590,7 @@ fill=""#000000"" stroke=""none"">
               switch(result)
               {
                   case "BOTH":
-                      ButtonPrintBoth(null,null);
+                      ButtonPrint(null,null);
                       break;
                   case "OUTLINES":
                       
@@ -696,7 +697,7 @@ fill=""#000000"" stroke=""none"">
         {
             var isTrackedSkeltonVisible = false;
             var nearestDistance = float.MaxValue;
-            var nearestSkeleton = 0;
+            Skeleton nearestSkel = null;
 
             foreach (var skel in this.skeletons)
             {
@@ -720,6 +721,7 @@ fill=""#000000"" stroke=""none"">
                 {
                     nearestDistance = skel.Position.Z;
                     nearestSkeleton = skel.TrackingId;
+                    nearestSkel = skel;
                 }
             }
 
@@ -728,6 +730,7 @@ fill=""#000000"" stroke=""none"">
                 this.backgroundRemovedColorStream.SetTrackedPlayer(nearestSkeleton);
                 this.currentlyTrackedSkeletonId = nearestSkeleton;
             }
+
         }
 
         /// <summary>
@@ -789,9 +792,11 @@ fill=""#000000"" stroke=""none"">
                     
                     try
                     {
-                        args.NewSensor.DepthStream.Range = this.checkBoxNearMode.IsChecked.GetValueOrDefault()
+                        /*args.NewSensor.DepthStream.Range = this.checkBoxNearMode.IsChecked.GetValueOrDefault()
                                                     ? DepthRange.Near
                                                     : DepthRange.Default;
+                        args.NewSensor.SkeletonStream.EnableTrackingInNearRange = true;*/
+                        args.NewSensor.DepthStream.Range = DepthRange.Default;
                         args.NewSensor.SkeletonStream.EnableTrackingInNearRange = true;
                     }
                     catch (InvalidOperationException)
@@ -825,7 +830,7 @@ fill=""#000000"" stroke=""none"">
                 //directions.Add(new SemanticResultValue("print both", "BOTH"));
                 directions.Add(new SemanticResultValue("take picture", "OUTLINES"));
                 directions.Add(new SemanticResultValue("back", "BACK"));
-                directions.Add(new SemanticResultValue("print", "PRINT"));
+                //directions.Add(new SemanticResultValue("print", "PRINT"));
                 directions.Add(new SemanticResultValue("test", "TEST"));
                 directions.Add(new SemanticResultValue("yes", "YES"));
 
@@ -851,10 +856,9 @@ fill=""#000000"" stroke=""none"">
         /// </summary>
         /// <param name="sender">object sending the event</param>
         /// <param name="e">event arguments</param>
-        private void ButtonPrintBoth(object sender, RoutedEventArgs e)
+        private void ButtonPrint(object sender, RoutedEventArgs e)
         {
-            TakePictureOutlines();
-            TakePictureSkeleton();
+            speechInteraction.fsm.Fire(SpeechInteraction.Command.Print);
 
             
         }
@@ -963,14 +967,16 @@ fill=""#000000"" stroke=""none"">
             // will not function on non-Kinect for Windows devices
             try
             {
-                this.sensor.SkeletonStream.TrackingMode = this.checkBoxNearMode.IsChecked.GetValueOrDefault()
+                /*this.sensor.SkeletonStream.TrackingMode = this.checkBoxNearMode.IsChecked.GetValueOrDefault()
                                                     ? SkeletonTrackingMode.Seated
                                                     : SkeletonTrackingMode.Default;
                 
                 this.sensor.DepthStream.Range = this.checkBoxNearMode.IsChecked.GetValueOrDefault()
                                                     ? DepthRange.Near
                                                     : DepthRange.Default;
-                Console.WriteLine("Checkbox state " + this.checkBoxNearMode.IsChecked.GetValueOrDefault());
+                Console.WriteLine("Checkbox state " + this.checkBoxNearMode.IsChecked.GetValueOrDefault());*/
+                this.sensor.SkeletonStream.TrackingMode = SkeletonTrackingMode.Default;
+                this.sensor.DepthStream.Range = DepthRange.Default;
             }
             catch (InvalidOperationException)
             {
@@ -992,7 +998,7 @@ fill=""#000000"" stroke=""none"">
             foreach (BluetoothDeviceInfo device in e.Devices)
             {
                 Debug.WriteLine(device.DeviceName + " is a " + device.ClassOfDevice.MajorDevice.ToString());
-                if (device.DeviceName.Contains("raspberrypi") && !alreadyPaired) //osboxes vs raspberry
+                if (device.DeviceName.Contains("linepod-photobooth") && !alreadyPaired) //osboxes vs raspberry
                 {
                     this.device = device;
                     
@@ -1270,8 +1276,8 @@ fill=""#000000"" stroke=""none"">
             if (!pictureTaken)
             {
 
-                if (this.checkBoxSkeleton.IsChecked.GetValueOrDefault())
-                {
+                /*if (this.checkBoxSkeleton.IsChecked.GetValueOrDefault())
+                {*/
                     skeletons = new Skeleton[0];
 
                     using (SkeletonFrame skeletonFrame = e.OpenSkeletonFrame())
@@ -1298,7 +1304,7 @@ fill=""#000000"" stroke=""none"">
                 }
 
                 
-            }
+            //}
 
         }
 
@@ -1495,8 +1501,19 @@ fill=""#000000"" stroke=""none"">
             bool noSkelTracked = true;
             if (skeletons.Length != 0)
             {
-                foreach (Skeleton skel in skeletons)
+                Skeleton skel = null;
+                ChooseSkeleton(); // Track this skeleton
+                foreach (Skeleton skeleton in skeletons)
                 {
+                    if (nearestSkeleton == skeleton.TrackingId)
+                    {
+                        skel = skeleton;
+                    }
+                }
+                if (skel != null)
+                {
+
+                
                     SkeletonHandler.RenderClippedEdges(skel, dc);
 
                     if (skel.TrackingState == SkeletonTrackingState.Tracked)
@@ -1546,14 +1563,14 @@ fill=""#000000"" stroke=""none"">
         {
             if (null != this.sensor)
             {
-                if (this.checkBoxNearMode.IsChecked.GetValueOrDefault())
-                {
+                //if (this.checkBoxNearMode.IsChecked.GetValueOrDefault())
+                //{
                     this.sensor.SkeletonStream.TrackingMode = SkeletonTrackingMode.Seated;
-                }
+                /*}
                 else
-                {
+                {*/
                     this.sensor.SkeletonStream.TrackingMode = SkeletonTrackingMode.Default;
-                }
+                //}
             }
         }
 

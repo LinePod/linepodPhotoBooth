@@ -27,7 +27,7 @@ namespace HPI.HCI.Bachelorproject1617.PhotoBooth
         Prompt PictureTaking1Prompt = new Prompt("Alright, I will take a picture in 3...2...1...");
         //String PictureTaking2 = @"Awesome shot! Do you want me to print it now? If so, just say 'print'. Otherwise you can also go back to take another picture.";
         String PictureTaking2 = @"Awesome shot! Do you want me to print it now?";
-        Prompt PictureTaking2Prompt = new Prompt("Awesome shot! Do you want me to print it now?");
+        //Prompt PictureTaking2Prompt = new Prompt("Awesome shot! Do you want me to print it now?");
         //String PictureTakenRepeat = @"Do you want me to print the picture now? If yes just say 'print'";
         String PictureTakenRepeat = @"Do you want me to print the picture? ";
         String BackToPersonRecognized = @"going back... if you want to take a picture of your silhouette just say 'outlines', otherwise you can also print a picture of yourself as a stick-person by saying 'skeleton'";
@@ -221,11 +221,18 @@ namespace HPI.HCI.Bachelorproject1617.PhotoBooth
 
         public void SpeakText(Prompt text)
         {
+            try
+            {
+                reader.SpeakAsyncCancelAll();
+                reader.SpeakAsync(text);
+                Console.WriteLine("Finished speaking");
 
-            reader.SpeakAsyncCancelAll();
-            reader.SpeakAsync(text);
-            Console.WriteLine("Finished speaking");
-
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Exception occurred");
+            }
+             
 
 
         }
@@ -276,6 +283,7 @@ namespace HPI.HCI.Bachelorproject1617.PhotoBooth
 
         private void PreparePicture()
         {
+            PictureTaking1Prompt = new Prompt("Alright, I will take a picture in 3...2...1...");
             SpeakText(PictureTaking1Prompt);
             //while (reader.GetCurrentlySpokenPrompt() != PictureTaking1Prompt) ;
             //while (reader.GetCurrentlySpokenPrompt() == PictureTaking1Prompt) ;
