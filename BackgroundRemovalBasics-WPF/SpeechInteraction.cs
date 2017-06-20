@@ -7,12 +7,14 @@ using System.Speech.Synthesis;
 using Microsoft.Speech.Recognition;
 using System.Timers;
 using System.Threading;
+using Hpi.Hci.Bachelorproject1617.PhotoBooth;
 
 namespace HPI.HCI.Bachelorproject1617.PhotoBooth
 {
-
     public class SpeechInteraction
+    
     {
+        public SpeechHandler speechHandler;
         bool isSpeaking = false;
         public bool outlines = false;
         //String NoPersonRecognizedRepeat = @"Huhu, is someone there? I don't see anyone... Don't be shy, just step about 1 meter in front of the kinect-camera and we can do an awesome tactile snapshot of you! If you don't get recognized, try to look more like a see star by spreading your arms away from you";
@@ -238,11 +240,12 @@ namespace HPI.HCI.Bachelorproject1617.PhotoBooth
         }
 
 
+
         void reader_SpeakStarted(object sender, SpeakStartedEventArgs e)
         {
-            if (mainWindow.speechEngine != null)
+            if (speechHandler.speechEngine != null)
             {
-                mainWindow.speechEngine.RecognizeAsyncCancel();
+                speechHandler.speechEngine.RecognizeAsyncCancel();
                 
             }
         }
@@ -250,14 +253,14 @@ namespace HPI.HCI.Bachelorproject1617.PhotoBooth
 
         void reader_SpeakCompleted(object sender, SpeakCompletedEventArgs e)
         {
-            
-            if (mainWindow.speechEngine != null)
+
+            if (speechHandler.speechEngine != null)
             {
-                mainWindow.speechEngine.RecognizeAsyncCancel();
+                speechHandler.speechEngine.RecognizeAsyncCancel();
                 //System.Threading.Thread.Sleep(1000);
                 try
                 {
-                    mainWindow.speechEngine.RecognizeAsync(RecognizeMode.Multiple);
+                    speechHandler.speechEngine.RecognizeAsync(RecognizeMode.Multiple);
                 }
                 catch (InvalidOperationException)
                 {

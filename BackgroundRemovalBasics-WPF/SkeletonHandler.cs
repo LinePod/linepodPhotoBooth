@@ -78,11 +78,7 @@ namespace Hpi.Hci.Bachelorproject1617.PhotoBooth
 
         
         
-        /// <summary>
-        private const int scale = 100;
-        private const int svgWidth = 200;
-        private const int svgHeight = 200;
-
+        
         
         
         KinectSensor sensor;

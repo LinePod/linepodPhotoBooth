@@ -59,66 +59,15 @@ namespace Hpi.Hci.Bachelorproject1617.PhotoBooth
         private Boolean alreadyPaired = false;
         BluetoothDeviceInfo device;
         int nearestSkeleton = 0;
+        
 
-        public String svgImage = @"<?xml version=""1.0"" standalone=""no""?>
-<!DOCTYPE svg PUBLIC ""-//W3C//DTD SVG 20010904//EN""
- ""http://www.w3.org/TR/2001/REC-SVG-20010904/DTD/svg10.dtd"">
-<svg version=""1.0"" xmlns=""http://www.w3.org/2000/svg""
- width=""640.000000pt"" height=""480.000000pt"" viewBox=""0 0 640.000000 480.000000""
- preserveAspectRatio=""xMidYMid meet"">
-<metadata>
-Created by potrace 1.14, written by Peter Selinger 2001-2017
-</metadata>
-<g transform=""translate(0.000000,480.000000) scale(1.000000,-1.000000)""
-fill=""#000000"" stroke=""none"">
-<path d=""M270 367 c0 -1 -1 -1 -3 -1 -1 0 -3 -1 -4 -2 -1 -1 -2 -2 -3 -2 0 0
--4 -2 -7 -5 -5 -6 -5 -6 -5 -10 0 -3 0 -5 1 -5 1 0 1 -2 1 -4 0 -2 0 -4 1 -4
-1 0 1 -4 1 -9 0 -5 0 -9 1 -9 1 0 1 -1 1 -3 0 -2 0 -3 1 -3 1 0 1 -3 1 -7 0
--4 0 -7 -1 -7 -1 0 -1 -1 -1 -2 0 -2 -6 -8 -8 -8 -1 0 -2 0 -2 -1 0 -1 -1 -1
--2 -1 -1 0 -2 0 -2 -1 0 -1 -1 -1 -3 -1 -2 0 -3 0 -3 -1 0 -1 -3 -1 -6 -1 -3
-0 -6 0 -6 -1 0 -1 -2 -1 -4 -1 -2 0 -4 0 -4 -1 0 -1 -1 -1 -2 -1 -1 0 -2 0 -2
--1 0 -1 -1 -1 -2 -1 -1 0 -4 -2 -4 -4 0 -1 -1 -2 -2 -3 -1 -1 -2 -2 -2 -3 0
--1 -1 -2 -3 -4 -2 -2 -3 -3 -3 -4 0 -1 -1 -2 -2 -3 -1 -1 -2 -2 -2 -3 0 -1 0
--2 -1 -2 -1 0 -1 -1 -1 -2 0 -1 0 -2 -1 -2 -1 0 -1 -1 -1 -2 0 -1 0 -2 -1 -2
--1 0 -1 -1 -1 -3 0 -2 0 -3 -1 -3 -1 0 -1 -1 -1 -2 0 -1 0 -2 -1 -2 -1 0 -1
--3 -1 -7 0 -4 0 -7 1 -7 1 0 1 -1 1 -2 0 -1 0 -2 -1 -2 -1 0 -1 -1 -1 -2 0 -1
-0 -2 -1 -2 -1 0 -1 0 -1 -1 0 -1 1 -1 2 -1 1 0 2 0 2 -1 0 -1 2 -1 5 -1 3 0 5
-1 7 3 4 5 12 4 12 -1 0 -1 0 -2 1 -2 1 0 1 -1 1 -3 0 -2 0 -3 1 -3 1 0 1 -1 1
--2 0 -1 0 -2 1 -2 1 0 1 -6 1 -17 0 -11 0 -17 -1 -17 -1 0 -1 -3 -1 -7 0 -4 0
--7 -1 -7 -1 0 -1 -2 -1 -5 0 -3 0 -5 -1 -5 -1 0 -1 -2 -1 -4 0 -2 0 -4 -1 -4
--1 0 -1 -1 -1 -3 0 -2 0 -3 -1 -3 -1 0 -1 -1 -1 -3 0 -2 0 -3 -1 -3 -1 0 -1
--1 -1 -3 0 -2 0 -3 -1 -3 -1 0 -1 -2 -1 -4 0 -2 0 -4 -1 -4 -1 0 -1 -1 -1 -2
-0 -1 0 -2 -1 -2 -1 0 -1 -1 -1 -2 0 -1 0 -2 -1 -2 -1 0 -1 -3 -1 -6 0 -3 0 -6
-1 -6 1 0 1 -1 1 -3 0 -2 0 -3 1 -3 1 0 1 -2 1 -5 0 -3 0 -5 -1 -5 -1 0 -1 -1
--1 -3 0 -2 0 -3 -1 -3 -1 0 -1 -3 -1 -6 0 -3 0 -6 -1 -6 -1 0 -1 -4 -1 -11 0
--7 0 -11 -1 -11 -1 0 -1 -4 -1 -10 0 -6 0 -10 -1 -10 -1 0 -1 -3 0 -5 3 -2 61
--2 64 0 1 2 1 5 0 5 -1 1 -1 1 0 2 0 0 1 2 1 4 0 2 0 4 1 4 1 0 1 1 1 2 0 1 0
-2 1 2 1 0 1 1 1 3 0 3 0 3 5 3 5 0 5 0 5 -3 0 -2 0 -3 1 -3 1 0 1 -3 1 -7 0
--4 0 -7 -1 -7 -1 0 -1 -1 -1 -3 l0 -3 27 0 c26 0 27 0 27 2 0 1 1 2 1 2 1 1 1
-1 0 2 -1 0 -2 22 0 22 1 0 1 10 1 29 0 19 0 29 -1 29 -1 0 -1 6 -1 15 0 9 0
-15 -1 15 -1 0 -1 2 -1 4 0 2 0 4 -1 4 -1 0 -1 1 -1 3 0 2 0 3 -1 3 -1 0 -1 6
--1 15 0 9 0 15 -1 15 -1 0 -1 4 -1 11 0 7 0 11 1 11 1 0 1 3 1 6 0 3 0 6 1 6
-1 0 1 2 1 4 0 4 4 8 7 8 1 0 5 -2 8 -6 3 -3 7 -6 7 -6 1 0 2 0 2 -1 0 -1 2 -1
-4 -1 l4 0 0 13 c0 8 0 13 -1 13 -1 0 -1 1 -1 2 0 1 -1 2 -2 3 -1 1 -2 2 -2 3
-0 1 0 2 -1 2 -1 0 -1 1 -1 2 0 1 0 2 -1 2 -1 0 -1 3 -1 7 0 4 0 7 -1 7 -1 0
--1 1 -1 3 0 1 -1 3 -2 4 -1 1 -2 2 -2 3 0 1 0 2 -1 2 -1 0 -1 1 -1 2 0 1 -1 2
--2 3 -1 1 -2 2 -2 3 0 2 -3 4 -4 4 -1 0 -2 0 -2 1 0 1 -2 1 -4 1 -2 0 -4 0 -4
-1 0 1 -1 1 -3 1 -2 0 -3 0 -3 1 0 1 -1 1 -2 1 -1 0 -2 0 -2 1 0 1 -1 1 -3 1
--1 0 -3 1 -4 2 -1 1 -2 2 -3 2 -2 0 -6 5 -6 6 0 1 0 2 -1 2 -1 0 -1 2 -1 5 0
-3 0 5 1 5 1 0 1 1 1 2 0 1 0 2 1 2 1 0 1 1 1 2 0 1 6 8 8 8 2 0 6 5 6 6 0 1 1
-2 2 3 1 1 2 2 2 3 0 1 0 2 1 2 1 0 1 1 1 2 0 1 0 2 1 2 1 0 1 2 1 5 0 3 0 5
--1 5 -1 0 -1 1 -1 3 0 2 0 3 -1 3 -1 0 -1 1 -1 2 0 1 -1 2 -2 3 -1 1 -2 2 -2
-3 0 2 -2 4 -4 4 -1 0 -2 1 -3 2 -1 1 -2 2 -3 2 -1 0 -2 0 -2 1 0 1 -2 1 -4 1
--2 0 -4 0 -4 1 0 1 -3 1 -6 1 -3 0 -6 0 -6 -1z""/>
-</g>
-</svg>";
+        public String svgImage = "";
 
         //speech
 
-        public SpeechRecognitionEngine speechEngine;
         
         RecognizerInfo ri;
-
+        SpeechHandler speechHandler; 
         static SpeechSynthesizer reader;
 
         public SpeechInteraction speechInteraction;
@@ -327,11 +276,9 @@ fill=""#000000"" stroke=""none"">
             }
 
 
-            if (null != this.speechEngine)
+            if (null != this.speechHandler)
             {
-                this.speechEngine.SpeechRecognized -= SpeechRecognized;
-                this.speechEngine.SpeechRecognitionRejected -= SpeechRejected;
-                this.speechEngine.RecognizeAsyncStop();
+                speechHandler.StopSpeechHandler();
             }      
 
         }
@@ -561,68 +508,9 @@ fill=""#000000"" stroke=""none"">
         }
 
 
-        private static RecognizerInfo GetKinectRecognizer()
-        {
-            foreach (RecognizerInfo recognizer in SpeechRecognitionEngine.InstalledRecognizers())
-            {
-                string value;
-                recognizer.AdditionalInfo.TryGetValue("Kinect", out value);
-                if ("True".Equals(value, StringComparison.OrdinalIgnoreCase))
-                { //&& "en-US".Equals(recognizer.Culture.Name, StringComparison.OrdinalIgnoreCase))
-                    return recognizer;
-                }
-            }
-
-            return null;
-        }
 
 
 
-        private void SpeechRecognized(object sender, SpeechRecognizedEventArgs e)
-          {
-            // Speech utterance confidence below which we treat speech as if it hadn't been heard
-            const double ConfidenceThreshold = 0.3;
-
-            if (e.Result.Confidence >= ConfidenceThreshold)
-            {
-                String result = e.Result.Semantics.Value.ToString();
-                Console.WriteLine(result);
-              switch(result)
-              {
-                  case "BOTH":
-                      ButtonPrint(null,null);
-                      break;
-                  case "OUTLINES":
-                      
-                      speechInteraction.fsm.Fire(SpeechInteraction.Command.Outlines);
-                      
-                      break;
-                  case "SKELETON":
-                      speechInteraction.fsm.Fire(SpeechInteraction.Command.Skeleton);
-                      
-                      break;
-                  case "BACK":
-                      speechInteraction.fsm.Fire(SpeechInteraction.Command.Back);
-                      
-                      break;
-                  case "PRINT":
-                  case "YES":
-                      speechInteraction.fsm.Fire(SpeechInteraction.Command.Print);
-                      break;
-                  case "TEST":
-                      speechInteraction.fsm.Fire(SpeechInteraction.Command.Test);
-                      break;
-                        
-                  
-              }
-            }
-          }
-
-
-        private void SpeechRejected(object sender, SpeechRecognitionRejectedEventArgs e)
-        {
-            Debug.WriteLine("Speech rejected");
-        }
 
 
         private Bitmap BmpFromByteArray(byte[] pixelData, int w, int h)
@@ -646,10 +534,12 @@ fill=""#000000"" stroke=""none"">
 
         private String GenerateOutlineSVG(String bmpPath)
         {
+            String OutputPath = "Z:\\Daten\\Bachelorprojekt1617\\Kinect\\potrace-1.14.win64\\result" + DateTime.Now.ToString("yyyy-MM-dd-HH-mm-ss") + ".svg";
+            Console.WriteLine(OutputPath);
             Process potrace = new Process {
                 StartInfo = new ProcessStartInfo {
                 FileName = "Z:\\Daten\\Bachelorprojekt1617\\Kinect\\potrace-1.14.win64\\potrace.exe",
-                Arguments = bmpPath + " -s -u 1 -o Z:\\Daten\\Bachelorprojekt1617\\Kinect\\potrace-1.14.win64\\result.svg", //SVG // if svg should be saved: -o Z:\\Daten\\Bachelorprojekt1617\\Kinect\\potrace-1.14.win64\\result.svg --fillcolor #FFFFFF 
+                Arguments = bmpPath + " -s -u 1 -o " + OutputPath, //SVG // if svg should be saved: -o Z:\\Daten\\Bachelorprojekt1617\\Kinect\\potrace-1.14.win64\\result.svg --fillcolor #FFFFFF 
                 RedirectStandardInput = true,
                 RedirectStandardOutput = true,
                 RedirectStandardError = true,
@@ -677,13 +567,10 @@ fill=""#000000"" stroke=""none"">
 
             BinaryWriter writer = new BinaryWriter(potrace.StandardInput.BaseStream);
             
-            //bmp.Save(writer.BaseStream, ImageFormat.Bmp);
             potrace.StandardInput.WriteLine(); //Without this line the input to Potrace won't go through.
             potrace.WaitForExit();
-            String svgString = File.ReadAllText("Z:\\Daten\\Bachelorprojekt1617\\Kinect\\potrace-1.14.win64\\result.svg");
-            //this.SendSvg(svgString);
+            String svgString = File.ReadAllText(OutputPath);
             svgImage = svgString;
-            //Console.WriteLine(svgImage);
             return svgString;
         }
 
@@ -805,8 +692,9 @@ fill=""#000000"" stroke=""none"">
                         args.NewSensor.DepthStream.Range = DepthRange.Default;
                         args.NewSensor.SkeletonStream.EnableTrackingInNearRange = false;
                     }
-                    InitializeSpeechRecognizer();
-                    
+                    this.speechHandler = new SpeechHandler(speechInteraction,args.NewSensor);
+                    this.speechHandler.InitializeSpeechRecognizer();
+                    this.speechInteraction.speechHandler = speechHandler;
                     
 
                 }
@@ -818,37 +706,6 @@ fill=""#000000"" stroke=""none"">
             }
         }
 
-        private void InitializeSpeechRecognizer()
-        {
-            ri = GetKinectRecognizer();
-            if (null != ri)
-            {
-                this.speechEngine = new SpeechRecognitionEngine(ri.Id);
-                var directions = new Choices();
-                directions.Add(new SemanticResultValue("outlines", "OUTLINES"));
-                directions.Add(new SemanticResultValue("skeleton", "SKELETON"));
-                //directions.Add(new SemanticResultValue("print both", "BOTH"));
-                directions.Add(new SemanticResultValue("take picture", "OUTLINES"));
-                directions.Add(new SemanticResultValue("back", "BACK"));
-                //directions.Add(new SemanticResultValue("print", "PRINT"));
-                directions.Add(new SemanticResultValue("test", "TEST"));
-                directions.Add(new SemanticResultValue("yes", "YES"));
-
-                var gb = new GrammarBuilder { Culture = ri.Culture };
-                gb.Append(directions);
-
-                var g = new Grammar(gb);
-                speechEngine.LoadGrammar(g);
-                speechEngine.SpeechRecognized += SpeechRecognized;
-                speechEngine.SpeechRecognitionRejected += SpeechRejected;
-
-                speechEngine.SetInputToAudioStream(
-                    sensor.AudioSource.Start(), new SpeechAudioFormatInfo(EncodingFormat.Pcm, 16000, 16, 1, 32000, 2, null));
-
-                speechEngine.RecognizeAsync(RecognizeMode.Multiple);
-                
-            }
-        }
 
 
         /// <summary>
@@ -893,10 +750,8 @@ fill=""#000000"" stroke=""none"">
                 return;
             }
             Console.WriteLine("Screenshot");
-            //reader.Speak("Printing outlines");
             
             pictureTaken = true;
-            //speechInteraction.fsm.Fire(SpeechInteraction.Command.Outlines);
 
         }
 
@@ -906,7 +761,6 @@ fill=""#000000"" stroke=""none"">
         public void TakePictureSkeleton()
         {
             speechInteraction.outlines = false;
-            Console.WriteLine("Taking picture of skeleton");
             if (this.sensor.SkeletonStream.IsEnabled )
             {
                 bool noSkelTracked = CheckIfPersonInImage();
@@ -916,21 +770,16 @@ fill=""#000000"" stroke=""none"">
                     reader.Speak("No person identified");
                     return;
                 }
-                Console.WriteLine("Skel stream enabled");
                 foreach (Skeleton skel in skeletons)
                 {
                     if (skel.TrackingState == SkeletonTrackingState.Tracked)
                     {
-                       Console.WriteLine("found tracked skeleton");
                         String svgString = GenerateSkeletonSVG(skel);
                         this.svgImage = svgString;
-                        //this.SendSvg(svgString);
                         break;
                     }
                 }
-                Console.WriteLine("all skeletons done");
-                //reader.Speak("Skeleton is being printed");
-
+                
                 pictureTaken = true;
                 
             }
@@ -952,42 +801,8 @@ fill=""#000000"" stroke=""none"">
             return noSkelTracked;
         }
         
-        /// <summary>
-        /// Handles the checking or unchecking of the near mode combo box
-        /// </summary>
-        /// <param name="sender">object sending the event</param>
-        /// <param name="e">event arguments</param>
-        private void CheckBoxNearModeChanged(object sender, RoutedEventArgs e)
-        {
-            if (null == this.sensorChooser || null == this.sensorChooser.Kinect)
-            {
-                return;
-            }
-
-            // will not function on non-Kinect for Windows devices
-            try
-            {
-                /*this.sensor.SkeletonStream.TrackingMode = this.checkBoxNearMode.IsChecked.GetValueOrDefault()
-                                                    ? SkeletonTrackingMode.Seated
-                                                    : SkeletonTrackingMode.Default;
-                
-                this.sensor.DepthStream.Range = this.checkBoxNearMode.IsChecked.GetValueOrDefault()
-                                                    ? DepthRange.Near
-                                                    : DepthRange.Default;
-                Console.WriteLine("Checkbox state " + this.checkBoxNearMode.IsChecked.GetValueOrDefault());*/
-                this.sensor.SkeletonStream.TrackingMode = SkeletonTrackingMode.Default;
-                this.sensor.DepthStream.Range = DepthRange.Default;
-            }
-            catch (InvalidOperationException)
-            {
-            }
-        }
-
+       
         
-
-
-
-
         private void bluetoothComponent_DiscoverDevicesComplete(object sender, DiscoverDevicesEventArgs e)
         {
             Console.WriteLine("Discovery finished");
