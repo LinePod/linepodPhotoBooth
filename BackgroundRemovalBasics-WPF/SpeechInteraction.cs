@@ -107,18 +107,10 @@ namespace HPI.HCI.Bachelorproject1617.PhotoBooth
                 .On(Command.Outlines).Goto(ProcessState.PictureTaken).Execute(() =>
                 {
                     outlines = true;
-                    
                     new Thread(PreparePicture).Start();
                     
-
-                    /*while (reader.GetCurrentlySpokenPrompt() != PictureTaking1Prompt) ;
-                    while (reader.GetCurrentlySpokenPrompt() == PictureTaking1Prompt) ;*/
-                    //Console.WriteLine("Finished utterance");
-                    //PictureSkeleton(null, null);
                     StartTimer(45000);
-                    //reader.SpeakCompleted += PictureOutlines;
-                    //System.Threading.Thread.Sleep(5000);
-                    //take picture outlines
+                 
                 })
                 .On(Command.Skeleton).Goto(ProcessState.PictureTaken).Execute(() =>
                 {
@@ -126,10 +118,7 @@ namespace HPI.HCI.Bachelorproject1617.PhotoBooth
                     new Thread(PreparePicture).Start();
 
                     StartTimer(45000);
-                    /*isSpeaking = true;
-                    outlines = false;
-                    reader.SpeakCompleted += PictureSkeleton;*/
-                    //take picture skeleton
+                 
                 });
             fsm.In(ProcessState.PictureTaken)
                 .On(Command.Print).Goto(ProcessState.Connected).Execute(() => {
@@ -217,8 +206,6 @@ namespace HPI.HCI.Bachelorproject1617.PhotoBooth
             reader.SpeakAsync(text);
             Console.WriteLine("Finished speaking");
             
-            
-
         }
 
         public void SpeakText(Prompt text)
@@ -235,8 +222,6 @@ namespace HPI.HCI.Bachelorproject1617.PhotoBooth
                 Console.WriteLine("Exception occurred");
             }
              
-
-
         }
 
 
@@ -267,30 +252,13 @@ namespace HPI.HCI.Bachelorproject1617.PhotoBooth
                     Console.WriteLine("InvalidOperationException");
                 }
 
-                
-                
-            }/*
-            if (isSpeaking)
-            {
-                if (outlines)
-                {
-                    PictureOutlines();
-
-                }
-                else
-                {
-                    PictureSkeleton();
-                }
-            }*/
+            }
         }
 
         private void PreparePicture()
         {
             PictureTaking1Prompt = new Prompt("Alright, I will take a picture in 3...2...1...");
             SpeakText(PictureTaking1Prompt);
-            //while (reader.GetCurrentlySpokenPrompt() != PictureTaking1Prompt) ;
-            //while (reader.GetCurrentlySpokenPrompt() == PictureTaking1Prompt) ;
-            
             if (outlines)
             {
                 PictureOutlines(null, null);
@@ -299,9 +267,7 @@ namespace HPI.HCI.Bachelorproject1617.PhotoBooth
             {
                 PictureSkeleton(null, null);
             }
-
-           
-                    
+       
         }
 
 
@@ -338,9 +304,5 @@ namespace HPI.HCI.Bachelorproject1617.PhotoBooth
             fsm.Fire(SpeechInteraction.Command.Repeat);
         }
 
-
-       
-
-      
     }
 }

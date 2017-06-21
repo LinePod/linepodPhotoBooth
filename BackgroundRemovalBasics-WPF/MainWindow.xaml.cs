@@ -21,8 +21,6 @@ namespace Hpi.Hci.Bachelorproject1617.PhotoBooth
     using PointF = System.Drawing.PointF;
     using System.Diagnostics;
     using System.Text;
-    using InTheHand.Net.Sockets;
-    using InTheHand.Net.Bluetooth;
     using System.Net.Sockets;
     using Svg;
     using System.Collections.Generic;
@@ -48,16 +46,14 @@ namespace Hpi.Hci.Bachelorproject1617.PhotoBooth
 
         public bool AlreadyConvertedToSVG = false;
         public bool BluetoothOn = true;
-        Socket client;
+        
+        ConnectionManager connectionManager;
 
         //skeleton vars 
         
         private const int scale = 100;
         private const int svgWidth = 640;
         private const int svgHeight = 480;
-        private static BluetoothClient thisDevice;
-        private Boolean alreadyPaired = false;
-        BluetoothDeviceInfo device;
         int nearestSkeleton = 0;
         
 
@@ -80,7 +76,6 @@ namespace Hpi.Hci.Bachelorproject1617.PhotoBooth
 
         SkeletonHandler skeletonHandler;
 
-        AsynchronousClient asyncClient;
         
         /// <summary>
         /// Active Kinect sensor
@@ -170,49 +165,14 @@ namespace Hpi.Hci.Bachelorproject1617.PhotoBooth
             reader.SelectVoice("Microsoft Zira Desktop");
             speechInteraction = new SpeechInteraction(this, reader);
             
-            //Bluetooth stuff here 
-            if (BluetoothOn)
-            {
-                if (BluetoothRadio.PrimaryRadio.Mode == RadioMode.Discoverable)
-                {
-                    thisDevice = new BluetoothClient();
-                    BluetoothComponent bluetoothComponent = new BluetoothComponent(thisDevice);
-                    bluetoothComponent.DiscoverDevicesProgress += bluetoothComponent_DiscoverDevicesProgress;
-                    bluetoothComponent.DiscoverDevicesComplete += bluetoothComponent_DiscoverDevicesComplete;
-                    bluetoothComponent.DiscoverDevicesAsync(8, true, true, true, false, thisDevice);
-                    Console.WriteLine("Connectable");
-                }
-                else
-                {
-                    reader.Speak("Please turn on your Bluetooth adapter");
+            //Connection stuff here 
 
-                }
-            }
-            else
-            {
-                asyncClient = new AsynchronousClient(speechInteraction);
-                InitAsyncTCPClient();
-            }
-
-            
-
+            connectionManager = new ConnectionManager(BluetoothOn, reader, speechInteraction);
 
             lastSkeletonTimeStamp = DateTime.Now;
         }
 
 
-        private void InitAsyncTCPClient()
-        {
-            try
-            {
-                
-                client = asyncClient.StartClient();
-            }
-            catch (System.Net.Sockets.SocketException)
-            {
-                InitAsyncTCPClient();
-            }
-        }
         
 
         /// <summary>
@@ -222,9 +182,9 @@ namespace Hpi.Hci.Bachelorproject1617.PhotoBooth
         ~MainWindow()
         {
             this.Dispose(false);
-            if (client != null)
+            if (connectionManager.client != null)
             {
-                AsynchronousClient.StopClient(client);
+                AsynchronousClient.StopClient(connectionManager.client);
             }
         }
 
@@ -392,23 +352,21 @@ namespace Hpi.Hci.Bachelorproject1617.PhotoBooth
                         {
                             if (!AlreadyConvertedToSVG)
                             {
-                                PrintSVGOutlines();
+                                GetSVGOutlinesString();
                                 AlreadyConvertedToSVG = true;
                             }
                         }
                         
-                        
                     }
-
-                
 
                 }
             }
         }
 
 
-
-        private void PrintSVGOutlines()
+        
+        //generates the outline svg and saves it - the real printing is triggered from the speechinteraction-class
+        private void GetSVGOutlinesString()
         {
             int colorWidth = this.foregroundBitmap.PixelWidth;
             int colorHeight = this.foregroundBitmap.PixelHeight;
@@ -454,19 +412,67 @@ namespace Hpi.Hci.Bachelorproject1617.PhotoBooth
             }
 
             //Bitmap bmp = BmpFromByteArray(pixelData, backgroundRemovedFrame.Width, backgroundRemovedFrame.Height);
-            String svgOutlineString = GenerateOutlineSVG(path);
+            String svgOutlineString = GenerateOutlineSVGFromBitmap(path);
             Console.WriteLine("before adding frame");
             AddSVGFrame(svgOutlineString);
 
         }
 
+        //start external program potrace to trace the image, later read the content of the output-file
+        private String GenerateOutlineSVGFromBitmap(String bmpPath)
+        {
+            String OutputPath = "Z:\\Daten\\Bachelorprojekt1617\\Kinect\\potrace-1.14.win64\\result" + DateTime.Now.ToString("yyyy-MM-dd-HH-mm-ss") + ".svg";
+            Console.WriteLine(OutputPath);
+            Process potrace = new Process
+            {
+                StartInfo = new ProcessStartInfo
+                {
+                    FileName = "Z:\\Daten\\Bachelorprojekt1617\\Kinect\\potrace-1.14.win64\\potrace.exe",
+                    Arguments = bmpPath + " -s -u 1 -o " + OutputPath, //SVG // if svg should be saved: -o Z:\\Daten\\Bachelorprojekt1617\\Kinect\\potrace-1.14.win64\\result.svg --fillcolor #FFFFFF 
+                    RedirectStandardInput = true,
+                    RedirectStandardOutput = true,
+                    RedirectStandardError = true,
+                    UseShellExecute = false,
+                    CreateNoWindow = true,
+                    WindowStyle = ProcessWindowStyle.Hidden
+                },
+                EnableRaisingEvents = false
+            };
+
+            StringBuilder svgBuilder = new StringBuilder();
+            potrace.OutputDataReceived += (object sender2, DataReceivedEventArgs e2) =>
+            {
+                svgBuilder.AppendLine(e2.Data);
+            };
+            if (true)
+            {
+                potrace.ErrorDataReceived += (object sender2, DataReceivedEventArgs e2) =>
+                {
+                    Console.WriteLine("Error: " + e2.Data);
+                };
+            }
+            potrace.Start();
+            potrace.BeginOutputReadLine();
+            if (true)
+            {
+                potrace.BeginErrorReadLine();
+            }
+
+            BinaryWriter writer = new BinaryWriter(potrace.StandardInput.BaseStream);
+
+            potrace.StandardInput.WriteLine(); //Without this line the input to Potrace won't go through.
+            potrace.WaitForExit();
+            String svgString = File.ReadAllText(OutputPath);
+            svgImage = svgString;
+            return svgString;
+        }
+
+
+
         private String AddSVGFrame(String svg)
         {
-            Console.WriteLine("adding svg frame");
-            //String svgFrame = "<?xml version=\"1.0\" standalone=\"no\"?> <!DOCTYPE svg PUBLIC \"-//W3C//DTD SVG 20010904//EN\" \"http://www.w3.org/TR/2001/REC-SVG-20010904/DTD/svg10.dtd\"> <svg version=\"1.0\" width=\"200\" height=\"130\" viewBox=\"0 0 640 480\" xmlns=\"http://www.w3.org/2000/svg\" preserveAspectRatio=\"xMidYMid meet\"> </svg>";
-            //String svgFrame = @"<?xml version=""1.0"" standalone=""no""?> <!DOCTYPE svg PUBLIC ""-//W3C//DTD SVG 20010904//EN"" ""http://www.w3.org/TR/2001/REC-SVG-20010904/DTD/svg10.dtd""> <svg version=""1.0"" width=""200"" height=""130"" viewBox=""0 0 640 480"" xmlns=""http://www.w3.org/2000/svg"" preserveAspectRatio=""xMidYMid meet""> </svg>";
             XmlDocument doc = new XmlDocument();
-            Console.WriteLine("frame");
+            //special svg-strings that are needed for right alignment on the page 
             if (speechInteraction.outlines)
             {
                 doc.LoadXml("<?xml version=\"1.0\" standalone=\"no\"?> <svg version=\"1.0\" width=\"200\" height=\"130\" viewBox=\"0 0 640 480\" xmlns=\"http://www.w3.org/2000/svg\" preserveAspectRatio=\"xMidYMid meet\"> </svg>");
@@ -476,103 +482,27 @@ namespace Hpi.Hci.Bachelorproject1617.PhotoBooth
                 doc.LoadXml("<?xml version=\"1.0\" standalone=\"no\"?> <svg version=\"1.0\" width=\"200\" height=\"130\" viewBox=\"0 0 2 2\" xmlns=\"http://www.w3.org/2000/svg\" preserveAspectRatio=\"xMidYMid meet\"> </svg>");
             }
             
-            Console.WriteLine("still alive");
-            
             string pattern = "<!.*>";
             string replacement = " ";
             Regex rgx = new Regex(pattern);
-            Console.WriteLine("rgx match");
             
             Console.WriteLine(rgx.Match(svg));
-            //svg = rgx.Replace(svg, replacement);
-
-            //Remove comments
+            
+            //Remove comments because Xml-lib cannot handle them
             svg = svg.Replace("﻿<!DOCTYPE svg PUBLIC \"-//W3C//DTD SVG 1.1//EN\" \"http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd\">","");
             svg = svg.Replace("<!DOCTYPE svg PUBLIC \"-//W3C//DTD SVG 20010904//EN\"\n \"http://www.w3.org/TR/2001/REC-SVG-20010904/DTD/svg10.dtd\">","");
             svg = svg.Replace("viewBox=\"0 0 640.000000 480.000000\"", "");
             XmlNode root = doc.DocumentElement;
-            Console.WriteLine("root " + root.OuterXml);
-            //Console.WriteLine(svg);
 
             XmlDocument doc1 = new XmlDocument();
-            Console.WriteLine("________________________");
             doc1.LoadXml(svg);
-            Console.WriteLine("________________________");
             root.AppendChild(doc.ImportNode(doc1.DocumentElement, true));
-            Console.WriteLine("added svg frame ");
             Console.WriteLine(doc.OuterXml);
             svgImage = doc.OuterXml;
-
             
             return svgImage;
         }
 
-
-
-
-
-
-
-        private Bitmap BmpFromByteArray(byte[] pixelData, int w, int h)
-        {
-            Bitmap bmp = null;
-            int ch = 3;
-            unsafe
-            {
-                
-                fixed (byte* p = pixelData)
-                {
-                    IntPtr unmanagedPointer = (IntPtr)p;
-
-                    // Deduced from your buffer size
-                    
-                    bmp = new Bitmap(w, h, w * 3, System.Drawing.Imaging.PixelFormat.Format24bppRgb, unmanagedPointer);
-                }
-            }
-            return bmp;
-        }
-
-        private String GenerateOutlineSVG(String bmpPath)
-        {
-            String OutputPath = "Z:\\Daten\\Bachelorprojekt1617\\Kinect\\potrace-1.14.win64\\result" + DateTime.Now.ToString("yyyy-MM-dd-HH-mm-ss") + ".svg";
-            Console.WriteLine(OutputPath);
-            Process potrace = new Process {
-                StartInfo = new ProcessStartInfo {
-                FileName = "Z:\\Daten\\Bachelorprojekt1617\\Kinect\\potrace-1.14.win64\\potrace.exe",
-                Arguments = bmpPath + " -s -u 1 -o " + OutputPath, //SVG // if svg should be saved: -o Z:\\Daten\\Bachelorprojekt1617\\Kinect\\potrace-1.14.win64\\result.svg --fillcolor #FFFFFF 
-                RedirectStandardInput = true,
-                RedirectStandardOutput = true,
-                RedirectStandardError = true,
-                UseShellExecute = false,
-                CreateNoWindow = true,
-                WindowStyle = ProcessWindowStyle.Hidden
-                },
-                EnableRaisingEvents = false
-            };
-
-            StringBuilder svgBuilder = new StringBuilder();
-            potrace.OutputDataReceived += (object sender2, DataReceivedEventArgs e2) => {
-                svgBuilder.AppendLine(e2.Data);
-            };
-            if (true) {
-                potrace.ErrorDataReceived += (object sender2, DataReceivedEventArgs e2) => {
-                Console.WriteLine("Error: " + e2.Data);
-                };
-            }
-            potrace.Start();
-            potrace.BeginOutputReadLine();
-            if (true) {
-                potrace.BeginErrorReadLine();
-            }
-
-            BinaryWriter writer = new BinaryWriter(potrace.StandardInput.BaseStream);
-            
-            potrace.StandardInput.WriteLine(); //Without this line the input to Potrace won't go through.
-            potrace.WaitForExit();
-            String svgString = File.ReadAllText(OutputPath);
-            svgImage = svgString;
-            return svgString;
-        }
 
 
         /// <summary>
@@ -709,10 +639,8 @@ namespace Hpi.Hci.Bachelorproject1617.PhotoBooth
 
 
         /// <summary>
-        /// Handles the user clicking on the screenshot button
+        /// Handles the user clicking on the print button
         /// </summary>
-        /// <param name="sender">object sending the event</param>
-        /// <param name="e">event arguments</param>
         private void ButtonPrint(object sender, RoutedEventArgs e)
         {
             speechInteraction.fsm.Fire(SpeechInteraction.Command.Print);
@@ -735,6 +663,7 @@ namespace Hpi.Hci.Bachelorproject1617.PhotoBooth
 
         }
 
+        //gets called from speechInteraction-class when picture of the outlines is taken
         public void TakePictureOutlines()
         {
             speechInteraction.outlines = true;
@@ -749,7 +678,6 @@ namespace Hpi.Hci.Bachelorproject1617.PhotoBooth
                 reader.Speak("No person identified");
                 return;
             }
-            Console.WriteLine("Screenshot");
             
             pictureTaken = true;
 
@@ -757,7 +685,7 @@ namespace Hpi.Hci.Bachelorproject1617.PhotoBooth
 
 
 
-
+        //gets called from speechInteraction-class when picture of the skeleton is taken
         public void TakePictureSkeleton()
         {
             speechInteraction.outlines = false;
@@ -803,283 +731,21 @@ namespace Hpi.Hci.Bachelorproject1617.PhotoBooth
         
        
         
-        private void bluetoothComponent_DiscoverDevicesComplete(object sender, DiscoverDevicesEventArgs e)
+
+        public void BluetoothConnect()
         {
-            Console.WriteLine("Discovery finished");
+            this.connectionManager.BluetoothConnect();
         }
 
-        private void bluetoothComponent_DiscoverDevicesProgress(object sender, DiscoverDevicesEventArgs e)
+        public void SendSvgBluetooth(String svgImage)
         {
-            foreach (BluetoothDeviceInfo device in e.Devices)
-            {
-                Debug.WriteLine(device.DeviceName + " is a " + device.ClassOfDevice.MajorDevice.ToString());
-                if (device.DeviceName.Contains("linepod-photobooth") && !alreadyPaired) //osboxes vs raspberry
-                {
-                    this.device = device;
-                    
-                }
-            }
+            this.connectionManager.SendSvgBluetooth(svgImage,this);
         }
 
-        public void SendSvgBluetooth(String svgString)
+        public void SendSvgTCP(String svgImage)
         {
-            if (thisDevice.Connected)
-            {
-                Debug.WriteLine("Connected");
-                NetworkStream stream = thisDevice.GetStream();
-                
-                if (stream.CanWrite)
-                {
-                    Guid uuid = System.Guid.NewGuid();
-                    int length = Encoding.UTF8.GetBytes(svgString).Length;
-                    byte[] rv = new byte[36 + 4 + length];
-                    Console.WriteLine("length of svg is " + length);
-                    System.Buffer.BlockCopy(Encoding.ASCII.GetBytes(uuid.ToString()), 0, rv, 0, 36);
-                    byte[] result = IntToByteArray(length);
-                    System.Buffer.BlockCopy(result, 0, rv, 36, 4);
-                    System.Buffer.BlockCopy(Encoding.UTF8.GetBytes(svgString), 0, rv, 36 + 4, length);
-                    stream.Write(rv, 0, 36 + 4 + length);
-                    //Console.WriteLine(rv.ToString());
-
-                    pictureTaken = false;
-                    AlreadyConvertedToSVG = false;
-                }
-            }
-            else
-            {
-                Debug.WriteLine("Not Connected");
-            }
-
+            this.connectionManager.SendSvgTCP(svgImage, this);
         }
-
-        public void SendSvgTCP(String svgString)
-        {
-            Console.WriteLine("Sending");
-            if (client != null)
-            {
-
-                if (client.Connected)
-                {
-                    Debug.WriteLine("Connected");
-
-                    AsynchronousClient.Send(client, svgString);
-                    pictureTaken = false;
-                    AlreadyConvertedToSVG = false;
-
-                }
-                else
-                {
-                    Debug.WriteLine("Not Connected");
-                }
-            }
-            else
-            {
-                Console.WriteLine("Client is null");
-            }
-        }
-
-
-        public static byte[] IntToByteArray(int input){
-            byte[] intBytes = BitConverter.GetBytes(input);
-                    if (BitConverter.IsLittleEndian)
-                        Array.Reverse(intBytes);
-            byte[] result = intBytes;
-            return result;
-        }
-
-        public void BluetoothConnect(){
-
-
-            
-            if (!thisDevice.Connected)
-            {
-
-                bool paired = BluetoothSecurity.PairRequest(device.DeviceAddress, "123456");
-                if (paired)
-                {
-                    alreadyPaired = true;
-                    Console.WriteLine("Paired!");
-                    thisDevice.BeginConnect(device.DeviceAddress, BluetoothService.SerialPort, result => Connected(result, speechInteraction), device);
-
-                }
-                else
-                {
-                    Console.WriteLine("There was a problem pairing.");
-                }
-            }
-            else
-            {
-                speechInteraction.fsm.Fire(SpeechInteraction.Command.Connected);
-                Console.WriteLine("Woohoo we are already connected!");
-            }
-        }
-
-        private void Connected(IAsyncResult result, SpeechInteraction speechInteraction)
-        {
-            
-            if (result.IsCompleted )
-            {
-                if (thisDevice.Connected)
-                {
-
-
-                
-                    Action lambdaConnected = () => speechInteraction.fsm.Fire(SpeechInteraction.Command.Connected);
-                    Application.Current.Dispatcher.Invoke(
-                    (Delegate)lambdaConnected);
-                    // client is connected now :)
-                    NetworkStream stream = thisDevice.GetStream();
-                    if (stream.CanRead)
-                    {
-                        byte[] myReadBuffer = new byte[1024];
-                        StringBuilder myCompleteMessage = new StringBuilder();
-                        int numberOfBytesRead = 0;
-
-                        // Incoming message may be larger than the buffer size. 
-                        do
-                        {
-                            
-                            if (stream.DataAvailable)
-                            { 
-                                numberOfBytesRead = stream.Read(myReadBuffer, 0, myReadBuffer.Length);
-                                /*byte[] typeBytes = new byte[4];
-                                Buffer.BlockCopy(myReadBuffer,0,type,0,4);
-                                if (BitConverter.IsLittleEndian)
-                                    Array.Reverse(typeBytes);
-
-                                int type = BitConverter.ToInt32(typeBytes, 0);*/
-                                Console.WriteLine("Received Bytes");
-                                Console.WriteLine(BitConverter.ToString(myReadBuffer));
-                                //int[] bytesAsInts = Array.ConvertAll(myReadBuffer, c => (int)c);  //myReadBuffer.Select(x => (int)x).ToArray();
-                                Console.WriteLine("Casted bytes to int array");
-                                //int type = bytesAsInts[0];
-                                //Console.WriteLine("first int " + type);
-                                int value = 0;
-                                for (int i = 0; i < 4; i++)
-                                {
-                                    value = (value << 4) + (myReadBuffer[i] & 0xff);
-                                }
-                                Console.WriteLine("value " + value);
-                                switch (value)
-                                {
-                                    case 0:
-                                        /*Console.WriteLine("x1 " + bytesAsInts[1]);
-                                        Console.WriteLine("y1 " + bytesAsInts[2]);
-                                        Console.WriteLine("x2 " + bytesAsInts[3]);
-                                        Console.WriteLine("y3 " + bytesAsInts[4]);*/
-
-                                        Console.WriteLine("Received input data from airbar");
-                                        break;
-                                    case 1:
-                                        int status = 0;
-                                        for (int i = 4; i < 8; i++)
-                                        {
-                                            status = (status << 4) + (myReadBuffer[i] & 0xff);
-                                        }
-                                        //int status = bytesAsInts[1];
-                                        Console.WriteLine("Status " + status);
-                                        Console.WriteLine("received uuid");
-                                        byte[] subArray = new byte[36];
-                                        int start = sizeof(int) + sizeof(int);
-                                        //Buffer.BlockCopy(myReadBuffer, 0, subArray, start, 36);
-
-                                        //String uuid = Encoding.ASCII.GetString(subArray);
-                                        //Console.WriteLine("received uuid " + uuid);
-                                        switch (status)
-                                        {
-                                            case 0:
-                                                Console.WriteLine("Finished printing");
-                                                Action lambda = () => speechInteraction.fsm.Fire(SpeechInteraction.Command.Printed);
-                                                Application.Current.Dispatcher.Invoke(
-                                                (Delegate)lambda);
-                                                break;
-
-
-                                        }
-                                        break;
-                                }
-                                Console.WriteLine("Stepped through decision tree");
-                                //MainWindow.DecodeReceivedData(myReadBuffer,speechInteraction);
-                            }
-                            
-                            //myCompleteMessage.AppendFormat("{0}", Encoding.ASCII.GetString(myReadBuffer, 0, numberOfBytesRead));
-                        }
-                        
-                        while (stream.CanRead && thisDevice.Connected);
-
-                        // Print out the received message to the console.
-                        //Console.WriteLine("You received the following message : " + myCompleteMessage);
-                    }
-                    else
-                    {
-                        Console.WriteLine("could not connect");
-                    }
-                }
-                
-                
-                
-
-            }
-            else
-            {
-                Console.WriteLine("Could not connect");
-            }
-        }
-
-/*
-        public static void DecodeReceivedData(byte[] myReadBuffer, SpeechInteraction speechInteraction)
-        {
-            Console.WriteLine("Casted bytes to int array");
-            //int type = bytesAsInts[0];
-            //Console.WriteLine("first int " + type);
-            int value = 0;
-            for (int i = 0; i < 4; i++)
-            {
-                value = (value << 4) + (myReadBuffer[i] & 0xff);
-            }
-            Console.WriteLine("value " + value);
-            switch (value)
-            {
-                case 0:
-                    /*Console.WriteLine("x1 " + bytesAsInts[1]);
-                    Console.WriteLine("y1 " + bytesAsInts[2]);
-                    Console.WriteLine("x2 " + bytesAsInts[3]);
-                    Console.WriteLine("y3 " + bytesAsInts[4]);*/
-
-              /*      Console.WriteLine("Received input data from airbar");
-                    break;
-                case 1:
-                    int status = 0;
-                    for (int i = 4; i < 8; i++)
-                    {
-                        status = (status << 4) + (myReadBuffer[i] & 0xff);
-                    }
-                    //int status = bytesAsInts[1];
-                    Console.WriteLine("Status " + status);
-                    Console.WriteLine("received uuid");
-                    byte[] subArray = new byte[36];
-                    int start = sizeof(int) + sizeof(int);
-                    //Buffer.BlockCopy(myReadBuffer, 0, subArray, start, 36);
-
-                    //String uuid = Encoding.ASCII.GetString(subArray);
-                    //Console.WriteLine("received uuid " + uuid);
-                    switch (status)
-                    {
-                        case 0:
-                            Console.WriteLine("Finished printing");
-                            Action lambda = () => speechInteraction.fsm.Fire(SpeechInteraction.Command.Printed);
-                            Application.Current.Dispatcher.Invoke(
-                            (Delegate)lambda);
-                            break;
-
-
-                    }
-                    break;
-            }
-            Console.WriteLine("Stepped through decision tree");
-
-        }
-*/
 
         /// <summary>
         /// Event handler for Kinect sensor's SkeletonFrameReady event
@@ -1091,8 +757,6 @@ namespace Hpi.Hci.Bachelorproject1617.PhotoBooth
             if (!pictureTaken)
             {
 
-                /*if (this.checkBoxSkeleton.IsChecked.GetValueOrDefault())
-                {*/
                     skeletons = new Skeleton[0];
 
                     using (SkeletonFrame skeletonFrame = e.OpenSkeletonFrame())
@@ -1118,12 +782,11 @@ namespace Hpi.Hci.Bachelorproject1617.PhotoBooth
                     }
                 }
 
-                
-            //}
-
+           
         }
 
 
+        //generates the skeleton svg and saves it - the real printing is triggered from speechinteraction
         public String GenerateSkeletonSVG(Skeleton skel)
         {
             SvgDocument doc = new SvgDocument()
@@ -1186,68 +849,15 @@ namespace Hpi.Hci.Bachelorproject1617.PhotoBooth
             legs.Add(rightKnee);
             legs.Add(rightAnkle);
             legs.Add(rightFoot);
-/*
-            float xMin = float.MaxValue;
-            float xMax = 0;
-            float yMin = float.MaxValue;
-            float yMax = 0;
 
-            foreach (var joint in skel.Joints)
-            {
-                List<PointF> points = new List<PointF>() { joint., p.End };
-                foreach (var point in points)
-                {
-                    if (point.X < xMin)
-                    {
-                        xMin = point.X;
-                    }
-                    else if (point.X > xMax)
-                    {
-                        xMax = point.X;
-                    }
-                    if (point.Y < yMin)
-                    {
-                        yMin = point.Y;
-                    }
-                    else if (point.Y > yMax)
-                    {
-                        yMax = point.Y;
-                    }
-                }
-            }
-            if (headCircle.CenterX - headCircle.Radius < xMin)
-            {
-                xMin = headCircle.Center.X;
-            }
-            else if (headCircle.CenterX + headCircle.Radius > xMin)
-            {
-                xMax = headCircle.Center.X;
-            }
-            if (headCircle.CenterY - headCircle.Radius < yMin)
-            {
-                yMin = headCircle.Center.Y;
-            }
-            else if (headCircle.CenterY + headCircle.Radius > yMin)
-            {
-                yMax = headCircle.Center.Y;
-            }*/
+
 
             skeletonHandler.AddJointsToPath(path, arms, 100);
             skeletonHandler.AddJointsToPath(path, back, 100);
             skeletonHandler.AddJointsToPath(path, legs, 100);
 
             //calculate intersecion point of head and neck
-            //double shoulderToHead = Math.Sqrt(Math.Pow(head.Position.X - shoulderCenter.Position.X,2) + Math.Pow(head.Position.Y - shoulderCenter.Position.Y,2));
-            /*float deltaX = leftHand.Position.X - leftElbow.Position.X;
-            float deltaY = leftHand.Position.Y - leftElbow.Position.Y;
-            float deltaZ = leftHand.Position.Z - leftElbow.Position.Z;
-            float distance = (float)Math.Sqrt(deltaX * deltaX + deltaY * deltaY + deltaZ * deltaZ);
-            float headRadius = (float)(distance * scale / 2.5);
-            Vector headVec = new Vector(head.Position.X, head.Position.Y);
-            Vector distVector = headVec - new Vector(shoulderCenter.Position.X, shoulderCenter.Position.Y);
-            distVector.Normalize();
-            Vector intersectingPoint = headVec - distVector * headRadius;
-            */
+
             PointF headPointOnScreen = new PointF(head.Position.X + 1, skeletonHandler.TranslatePosition(head.Position.Y));
             PointF shoulderPointOnScreen = new PointF(shoulderCenter.Position.X +1, skeletonHandler.TranslatePosition(shoulderCenter.Position.Y));
             double deltaX = headPointOnScreen.X - shoulderPointOnScreen.X;
@@ -1327,7 +937,6 @@ namespace Hpi.Hci.Bachelorproject1617.PhotoBooth
                 }
                 if (skel != null)
                 {
-
                 
                     SkeletonHandler.RenderClippedEdges(skel, dc);
 
@@ -1368,43 +977,6 @@ namespace Hpi.Hci.Bachelorproject1617.PhotoBooth
             drawingGroup.ClipGeometry = new RectangleGeometry(new Rect(0.0, 0.0, SkeletonHandler.RenderWidth, SkeletonHandler.RenderHeight));
         }
         
-
-        /// <summary>
-        /// Handles the checking or unchecking of the seated mode combo box
-        /// </summary>
-        /// <param name="sender">object sending the event</param>
-        /// <param name="e">event arguments</param>
-        private void CheckBoxSeatedModeChanged(object sender, RoutedEventArgs e)
-        {
-            if (null != this.sensor)
-            {
-                //if (this.checkBoxNearMode.IsChecked.GetValueOrDefault())
-                //{
-                    this.sensor.SkeletonStream.TrackingMode = SkeletonTrackingMode.Seated;
-                /*}
-                else
-                {*/
-                    this.sensor.SkeletonStream.TrackingMode = SkeletonTrackingMode.Default;
-                //}
-            }
-        }
-
-        private void CheckBoxDepthstreamChanged(object sender, RoutedEventArgs e)
-        {
-            return;
-        }
-
-
-        private void CheckBoxSkeletonChanged(object sender, RoutedEventArgs e)
-        {
-            return;
-        }
-
-        
-
-
     }
 
-
-   
 }

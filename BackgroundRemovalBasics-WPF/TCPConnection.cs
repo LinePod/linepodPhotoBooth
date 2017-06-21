@@ -223,7 +223,7 @@ public class AsynchronousClient {
         byte[] rv = new byte[36 + 4 + length];
         Console.WriteLine("length of svg is " + length);
         System.Buffer.BlockCopy(Encoding.ASCII.GetBytes(uuid.ToString()), 0, rv, 0, 36);
-        byte[] result = MainWindow.IntToByteArray(length);
+        byte[] result = HelperFunctions.IntToByteArray(length);
         System.Buffer.BlockCopy(result, 0, rv, 36, 4);
         System.Buffer.BlockCopy(Encoding.UTF8.GetBytes(data), 0, rv, 36 + 4, length);
 
