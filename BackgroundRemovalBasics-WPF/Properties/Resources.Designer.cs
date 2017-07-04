@@ -63,6 +63,15 @@ namespace Hpi.Hci.Bachelorproject1617.PhotoBooth.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.IO.UnmanagedMemoryStream similar to System.IO.MemoryStream.
         /// </summary>
+        internal static System.IO.UnmanagedMemoryStream alles_klar_nehme_bild_auf {
+            get {
+                return ResourceManager.GetStream("alles_klar_nehme_bild_auf", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.IO.UnmanagedMemoryStream similar to System.IO.MemoryStream.
+        /// </summary>
         internal static System.IO.UnmanagedMemoryStream camera_shutter_sound {
             get {
                 return ResourceManager.GetStream("camera_shutter_sound", resourceCulture);
@@ -75,6 +84,87 @@ namespace Hpi.Hci.Bachelorproject1617.PhotoBooth.Properties {
         internal static string ConnectDeviceFirst {
             get {
                 return ResourceManager.GetString("ConnectDeviceFirst", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.IO.UnmanagedMemoryStream similar to System.IO.MemoryStream.
+        /// </summary>
+        internal static System.IO.UnmanagedMemoryStream drucke {
+            get {
+                return ResourceManager.GetStream("drucke", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.IO.UnmanagedMemoryStream similar to System.IO.MemoryStream.
+        /// </summary>
+        internal static System.IO.UnmanagedMemoryStream fertig_mit_drucekn {
+            get {
+                return ResourceManager.GetStream("fertig_mit_drucekn", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.IO.UnmanagedMemoryStream similar to System.IO.MemoryStream.
+        /// </summary>
+        internal static System.IO.UnmanagedMemoryStream gehe_zurück {
+            get {
+                return ResourceManager.GetStream("gehe_zurück", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.IO.UnmanagedMemoryStream similar to System.IO.MemoryStream.
+        /// </summary>
+        internal static System.IO.UnmanagedMemoryStream gutes_bild_soll_ich_drucken {
+            get {
+                return ResourceManager.GetStream("gutes_bild_soll_ich_drucken", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.IO.UnmanagedMemoryStream similar to System.IO.MemoryStream.
+        /// </summary>
+        internal static System.IO.UnmanagedMemoryStream hey_ist_da_jemand {
+            get {
+                return ResourceManager.GetStream("hey_ist_da_jemand", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.IO.UnmanagedMemoryStream similar to System.IO.MemoryStream.
+        /// </summary>
+        internal static System.IO.UnmanagedMemoryStream hey_nicht_vergessen {
+            get {
+                return ResourceManager.GetStream("hey_nicht_vergessen", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.IO.UnmanagedMemoryStream similar to System.IO.MemoryStream.
+        /// </summary>
+        internal static System.IO.UnmanagedMemoryStream hey_noch_da {
+            get {
+                return ResourceManager.GetStream("hey_noch_da", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.IO.UnmanagedMemoryStream similar to System.IO.MemoryStream.
+        /// </summary>
+        internal static System.IO.UnmanagedMemoryStream hey_noch_da_soll_ich_nun_drucken {
+            get {
+                return ResourceManager.GetStream("hey_noch_da_soll_ich_nun_drucken", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.IO.UnmanagedMemoryStream similar to System.IO.MemoryStream.
+        /// </summary>
+        internal static System.IO.UnmanagedMemoryStream ich_habe_eine_person_erkannt {
+            get {
+                return ResourceManager.GetStream("ich_habe_eine_person_erkannt", resourceCulture);
             }
         }
         
@@ -111,6 +201,33 @@ namespace Hpi.Hci.Bachelorproject1617.PhotoBooth.Properties {
         internal static string ScreenshotWriteSuccess {
             get {
                 return ResourceManager.GetString("ScreenshotWriteSuccess", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.IO.UnmanagedMemoryStream similar to System.IO.MemoryStream.
+        /// </summary>
+        internal static System.IO.UnmanagedMemoryStream verbinde_mit_linepod {
+            get {
+                return ResourceManager.GetStream("verbinde_mit_linepod", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.IO.UnmanagedMemoryStream similar to System.IO.MemoryStream.
+        /// </summary>
+        internal static System.IO.UnmanagedMemoryStream wo_bist_du_hin {
+            get {
+                return ResourceManager.GetStream("wo_bist_du_hin", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.IO.UnmanagedMemoryStream similar to System.IO.MemoryStream.
+        /// </summary>
+        internal static System.IO.UnmanagedMemoryStream woop_woop_erkenne_person {
+            get {
+                return ResourceManager.GetStream("woop_woop_erkenne_person", resourceCulture);
             }
         }
     }

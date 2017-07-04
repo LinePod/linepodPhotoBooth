@@ -94,6 +94,14 @@ namespace Hpi.Hci.Bachelorproject1617.PhotoBooth
                 directions.Add(new SemanticResultValue("test", "TEST"));
                 directions.Add(new SemanticResultValue("yes", "YES"));
 
+
+                //german
+                directions.Add(new SemanticResultValue("bereit", "OUTLINES"));
+                directions.Add(new SemanticResultValue("zurück", "BACK"));
+                directions.Add(new SemanticResultValue("drucken", "PRINT"));
+                directions.Add(new SemanticResultValue("ja", "YES"));
+
+
                 var gb = new GrammarBuilder { Culture = ri.Culture };
                 gb.Append(directions);
 

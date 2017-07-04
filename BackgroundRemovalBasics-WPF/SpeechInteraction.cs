@@ -17,25 +17,32 @@ namespace HPI.HCI.Bachelorproject1617.PhotoBooth
         public SpeechHandler speechHandler;
         bool isSpeaking = false;
         public bool outlines = false;
-        //String NoPersonRecognizedRepeat = @"Huhu, is someone there? I don't see anyone... Don't be shy, just step about 1 meter in front of the kinect-camera and we can do an awesome tactile snapshot of you! If you don't get recognized, try to look more like a see star by spreading your arms away from you";
-        //String NoPersonRecognizedRepeat = @"Huhu, is someone there? Just step about 1 meter in front of the kinect-camera and we can do an awesome tactile snapshot of you! If you want get a mate and do a cool pose together";
-        String NoPersonRecognizedRepeat = @"Huhu, is someone there? Just step about 1 meter in front of the kinect-camera and we can do an awesome tactile snapshot of you!";
-        //String PersonRecognizedTransition = @"Woop woop! I recognized a person!! I would suggest to print a picture of your silhouette now, what do you think? If you want that too, just say 'outlines' . Otherwise we can also print you as a stick-figure, which looks also pretty cool if you do a crazy gesture. If you want to try that, just say 'skeleton'";
-        String PersonRecognizedTransition = @"Woop woop! I recognized a person!! Please tell me if you want to print your outlines or your skeleton?";
-        String PersonLeft = @"Oohh, where did you go? I can't see you anymore";
-        //String PersonRecognizedRepeat = @"hey, are you still there? Don't forget, I would suggest to print your silhouette now, what do you think? If you want that too, just say 'outlines' . Otherwise we can also print you as a stick-figure, which looks also pretty cool if you do a crazy gesture. If you want to do that, just say 'skeleton'";
-        String PersonRecognizedRepeat = @"hey, are you still there? Don't forget, if you want to print your silhouette now, just say 'outlines' . Otherwise we can also print you as a stick-figure if you say 'skeleton'"; 
-        String PictureTaking1 = "Alright, I will take a picture in 3...2...1...";
-        Prompt PictureTaking1Prompt = new Prompt("Alright, I will take a picture in 3...2...1...");
-        //String PictureTaking2 = @"Awesome shot! Do you want me to print it now? If so, just say 'print'. Otherwise you can also go back to take another picture.";
-        String PictureTaking2 = @"Awesome shot! Do you want me to print it now?";
-        //Prompt PictureTaking2Prompt = new Prompt("Awesome shot! Do you want me to print it now?");
-        //String PictureTakenRepeat = @"Do you want me to print the picture now? If yes just say 'print'";
-        String PictureTakenRepeat = @"Do you want me to print the picture? ";
-        String BackToPersonRecognized = @"going back... if you want to take a picture of your silhouette just say 'outlines', otherwise you can also print a picture of yourself as a stick-person by saying 'skeleton'";
-        String ConnectingString = @"connecting to Linepod";
-        String PrintingString = "printing";
-        String PrintedString = @"Woohoo, our Linepod just finished printing. Next person please.";
+        //String NoPersonRecognizedRepeat = @"Huhu, is someone there? Just step about 1 meter in front of the kinect-camera and we can do an awesome tactile snapshot of you!";
+        const String NoPersonRecognizedRepeat = @"Hallo, ist da jemand? Komm ins Bild, dann kann ich ein cooles, fühlbares Foto von dir machen!";
+
+        //String PersonRecognizedTransition = @"Woop woop! I recognized a person!! Please tell me if you want to print your outlines or your skeleton?";
+        const String PersonRecognizedTransition = @"Wuhuu, ich habe eine Person erkannt. Möchtest du jetzt ein Foto von deinem Umriss machen?";
+        
+        //String PersonLeft = @"Oohh, where did you go? I can't see you anymore";
+        const String PersonLeft = @"Wo bist du hin? Ich kann dich nicht mehr sehen!";
+        //String PersonRecognizedRepeat = @"hey, are you still there? Don't forget, if you want to print your silhouette now, just say 'outlines' . Otherwise we can also print you as a stick-figure if you say 'skeleton'"; 
+        const String PersonRecognizedRepeat = @"hey, noch da? Nicht vergessen: wenn du magst, mache ich ein taktiles Foto von deinem Umriss? Möchtest du das tun?"; 
+        //String PictureTaking1 = "Alright, I will take a picture in 3...2...1...";
+        const String PictureTaking1 = "Alles klar, nehme das Bild auf in 3...2...1...";
+        //Prompt PictureTaking1Prompt = new Prompt("Alright, I will take a picture in 3...2...1...");
+        Prompt PictureTaking1Prompt = new Prompt("Alles klar, nehme das Bild auf in 3...2...1...");
+        //String PictureTaking2 = @"Awesome shot! Do you want me to print it now?";
+        const String PictureTaking2 = @"Gutes Bild! Soll ich das Foto nun drucken?";
+        //String PictureTakenRepeat = @"Do you want me to print the picture? ";
+        const String PictureTakenRepeat = @"Hey, noch da? Soll ich das Foto nun drucken? ";
+        //String BackToPersonRecognized = @"going back... if you want to take a picture of your silhouette just say 'outlines', otherwise you can also print a picture of yourself as a stick-person by saying 'skeleton'";
+        const String BackToPersonRecognized = @"gehe zurück... Möchtest du ein neues Bild machen?";
+        //String ConnectingString = @"connecting to Linepod";
+        const String ConnectingString = @"verbinde mit dem Linepod";
+        //String PrintingString = "printing";
+        const String PrintingString = "drucke...";
+        //String PrintedString = @"Woohoo, our Linepod just finished printing. Next person please.";
+        const String PrintedString = @"Wuhu, unser Linepod ist fertig mit drucken. Viel Spaß mit dem Bild.";
         System.Timers.Timer timer;
 
         public enum ProcessState
@@ -199,18 +206,66 @@ namespace HPI.HCI.Bachelorproject1617.PhotoBooth
             snd.Play();
         }
 
+
+   
         public void SpeakText(String text)
         {
            
-            reader.SpeakAsyncCancelAll();
-            reader.SpeakAsync(text);
+            System.IO.Stream str = null;
+                         
+           switch (text)
+            {
+        
+                case NoPersonRecognizedRepeat:
+                    str = Hpi.Hci.Bachelorproject1617.PhotoBooth.Properties.Resources.hey_ist_da_jemand;
+                    break;
+                case PersonRecognizedTransition:
+                    str = Hpi.Hci.Bachelorproject1617.PhotoBooth.Properties.Resources.woop_woop_erkenne_person;
+                    break;
+                case PersonLeft:
+                    str = Hpi.Hci.Bachelorproject1617.PhotoBooth.Properties.Resources.wo_bist_du_hin;
+                    break;
+                case PersonRecognizedRepeat:
+                    str = Hpi.Hci.Bachelorproject1617.PhotoBooth.Properties.Resources.ich_habe_eine_person_erkannt;
+                    break;
+                case PictureTaking1:
+                    str = Hpi.Hci.Bachelorproject1617.PhotoBooth.Properties.Resources.alles_klar_nehme_bild_auf;
+                    break;
+                /*case PictureTaking1Prompt.ToString():
+                    str = Hpi.Hci.Bachelorproject1617.PhotoBooth.Properties.Resources.;
+                    break;*/
+                 case PictureTaking2:
+                    str = Hpi.Hci.Bachelorproject1617.PhotoBooth.Properties.Resources.gutes_bild_soll_ich_drucken;
+                    break;
+                case PictureTakenRepeat:
+                    str = Hpi.Hci.Bachelorproject1617.PhotoBooth.Properties.Resources.hey_noch_da_soll_ich_nun_drucken;
+                    break;
+                case BackToPersonRecognized:
+                    str = Hpi.Hci.Bachelorproject1617.PhotoBooth.Properties.Resources.gehe_zurück;
+                    break;
+                case ConnectingString:
+                    str = Hpi.Hci.Bachelorproject1617.PhotoBooth.Properties.Resources.verbinde_mit_linepod;
+                    break;
+                 case PrintingString:
+                    str = Hpi.Hci.Bachelorproject1617.PhotoBooth.Properties.Resources.drucke;
+                    break;
+                case PrintedString:
+                    str = Hpi.Hci.Bachelorproject1617.PhotoBooth.Properties.Resources.fertig_mit_drucekn;
+                    break;
+            }
+                 
+            System.Media.SoundPlayer snd = new System.Media.SoundPlayer(str);
+            snd.Play();
+
+            //reader.SpeakAsyncCancelAll();
+            //reader.SpeakAsync(text);
             Console.WriteLine("Finished speaking");
             
         }
 
         public void SpeakText(Prompt text)
         {
-            try
+            /*try
             {
                 reader.SpeakAsyncCancelAll();
                 reader.SpeakAsync(text);
@@ -220,7 +275,12 @@ namespace HPI.HCI.Bachelorproject1617.PhotoBooth
             catch (Exception e)
             {
                 Console.WriteLine("Exception occurred");
-            }
+            }*/
+            System.IO.Stream str = Hpi.Hci.Bachelorproject1617.PhotoBooth.Properties.Resources.alles_klar_nehme_bild_auf;
+            
+            System.Media.SoundPlayer snd = new System.Media.SoundPlayer(str);
+            snd.Play();
+
              
         }
 
