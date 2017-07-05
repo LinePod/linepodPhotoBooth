@@ -5,6 +5,7 @@ using Microsoft.Speech.Recognition;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -83,7 +84,7 @@ namespace Hpi.Hci.Bachelorproject1617.PhotoBooth
             ri = GetKinectRecognizer();
             if (null != ri)
             {
-                this.speechEngine = new SpeechRecognitionEngine(ri.Id);
+                this.speechEngine = new SpeechRecognitionEngine(new CultureInfo("de-DE"));
                 var directions = new Choices();
                 directions.Add(new SemanticResultValue("outlines", "OUTLINES"));
                 directions.Add(new SemanticResultValue("skeleton", "SKELETON"));

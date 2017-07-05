@@ -99,21 +99,20 @@
         </Grid>
         <Grid Grid.Row="1" Grid.ColumnSpan="3">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="185*"/>
-                <ColumnDefinition Width="185*"/>
+                <ColumnDefinition Width="652*"/>
+                <ColumnDefinition Width="175*"/>
+                <ColumnDefinition Width="477*"/>
             </Grid.ColumnDefinitions>
-            <Image Name ="Backdrop" Source="Images\empty.jpg" Grid.Column="0"/>
-            <Image Name ="MaskedColor" Grid.Column="0" />
-            <Viewbox Stretch="Uniform" HorizontalAlignment="Center" Grid.Column="1" >
-                <Image Name="Image" Width="640" Height="480"/>
-            </Viewbox>
+            <Image Name ="Backdrop" Source="Images\empty.jpg" Grid.Column="0" Grid.ColumnSpan="3" Margin="200,0"/>
+            <Image Name ="MaskedColor" Grid.Column="0" Grid.ColumnSpan="3" Margin="200,0" />
+            <Viewbox Stretch="Uniform" HorizontalAlignment="Center" Grid.Column="2" Margin="151,0,326,0" />
         </Grid>
         <Button Grid.Row="2" Style="{StaticResource SnapshotButton}" Content="Skeleton    " Height="32" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,7,306,11" Name="buttonPrintSkel"  Click="ButtonSkeletonTriggerPhoto" Grid.Column="2" Width="136" />
         <Button Grid.Row="2" Style="{StaticResource SnapshotButton}" Content="Outlines    " Height="32" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,7,160,11" Name="buttonPrintOutlines"  Click="ButtonOutlinesTriggerPhoto" Grid.Column="2" Width="130
                 " />
         <Button Grid.Row="2" Style="{StaticResource SnapshotButton}" Content="Print         " Height="32" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,7,10,11" Name="buttonPrintBoth"  Click="ButtonPrint" Grid.Column="2" Width="130
                 " />
-   <!--     <CheckBox Grid.Row="2" Style="{StaticResource SquareCheckBox}" Content="Near Mode" Height="24" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="0,13" Name="checkBoxNearMode" Checked="CheckBoxNearModeChanged" Unchecked="CheckBoxNearModeChanged" Grid.Column="1" Width="108"/>
+        <!--     <CheckBox Grid.Row="2" Style="{StaticResource SquareCheckBox}" Content="Near Mode" Height="24" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="0,13" Name="checkBoxNearMode" Checked="CheckBoxNearModeChanged" Unchecked="CheckBoxNearModeChanged" Grid.Column="1" Width="108"/>
        <StatusBar Grid.Row="4" HorizontalAlignment="Stretch" Name="statusBar" VerticalAlignment="Bottom" Background="White" Foreground="{StaticResource MediumGreyBrush}" Grid.ColumnSpan="3" Height="26">
             <StatusBarItem Padding="0 0 0 10"/>
         </StatusBar>

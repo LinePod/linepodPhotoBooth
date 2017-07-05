@@ -152,8 +152,8 @@ namespace Hpi.Hci.Bachelorproject1617.PhotoBooth
             // Create an image source that we can use in our image control
             this.imageSource = new DrawingImage(this.drawingGroup);
 
-            // Display the drawing using our image control
-            this.Image.Source = this.imageSource;
+            // Display the skeleton drawing using our image control
+            //this.Image.Source = this.imageSource;
             
 
             //speech-in and -out
@@ -294,6 +294,7 @@ namespace Hpi.Hci.Bachelorproject1617.PhotoBooth
                     
                     }
 
+                    this.CheckIfPersonInImage(skeletons);
                     this.ChooseSkeleton();
                 }
                 catch (InvalidOperationException)
@@ -602,7 +603,7 @@ namespace Hpi.Hci.Bachelorproject1617.PhotoBooth
 
                     // Add an event handler to be called whenever there is new depth frame data
                     args.NewSensor.AllFramesReady += this.SensorAllFramesReady;
-                    args.NewSensor.SkeletonFrameReady += this.SensorSkeletonFrameReady;
+                    //args.NewSensor.SkeletonFrameReady += this.SensorSkeletonFrameReady;
                     this.sensor = args.NewSensor;
                     this.sensor.Start();
                     skeletonHandler = new SkeletonHandler(sensor, speechInteraction);
@@ -917,13 +918,48 @@ namespace Hpi.Hci.Bachelorproject1617.PhotoBooth
         }
 
 
+        private void CheckIfPersonInImage(Skeleton[] skeletons)
+        {
+            bool noSkelTracked = true;
+            if (skeletons.Length != 0)
+            {
+                ChooseSkeleton(); // Track this skeleton
+                foreach (Skeleton skel in skeletons)
+                {
+
+                    if (skel.TrackingState == SkeletonTrackingState.Tracked)
+                    {
+                        noSkelTracked = false;
+                        lastSkeletonTimeStamp = DateTime.Now;
+                    }
+                    else if (skel.TrackingState == SkeletonTrackingState.PositionOnly)
+                    {
+                        noSkelTracked = false;
+                        lastSkeletonTimeStamp = DateTime.Now;
+                    }
+
+                }
+
+                if (noSkelTracked)
+                {
+                    if ((DateTime.Now - lastSkeletonTimeStamp).TotalMilliseconds > 1000)
+                    {
+                        speechInteraction.fsm.Fire(SpeechInteraction.Command.FramesNotReady);
+                        lastSkeletonTimeStamp = DateTime.Now;
+                    }
+                }
+                else
+                {
+                    speechInteraction.fsm.Fire(SpeechInteraction.Command.FramesReady);
+                }
+            }
+        }
 
         public void RenderSkeleton(DrawingContext dc, Skeleton[] skeletons, DrawingGroup drawingGroup)
         {
             // Draw a transparent background to set the render size
             dc.DrawRectangle(Brushes.White, null, new Rect(0.0, 0.0, SkeletonHandler.RenderWidth, SkeletonHandler.RenderHeight));
-            
-            bool noSkelTracked = true;
+
             if (skeletons.Length != 0)
             {
                 Skeleton skel = null;
@@ -937,14 +973,12 @@ namespace Hpi.Hci.Bachelorproject1617.PhotoBooth
                 }
                 if (skel != null)
                 {
-                
+
                     SkeletonHandler.RenderClippedEdges(skel, dc);
 
                     if (skel.TrackingState == SkeletonTrackingState.Tracked)
                     {
                         skeletonHandler.DrawBonesAndJoints(skel, dc);
-                        noSkelTracked = false;
-                        lastSkeletonTimeStamp = DateTime.Now;
                     }
                     else if (skel.TrackingState == SkeletonTrackingState.PositionOnly)
                     {
@@ -954,24 +988,10 @@ namespace Hpi.Hci.Bachelorproject1617.PhotoBooth
                         skeletonHandler.SkeletonPointToScreen(skel.Position),
                         SkeletonHandler.BodyCenterThickness,
                         SkeletonHandler.BodyCenterThickness);
-                        noSkelTracked = false;
-                        lastSkeletonTimeStamp = DateTime.Now;
                     }
                 }
             }
-
-            if (noSkelTracked)
-            {
-                if ((DateTime.Now - lastSkeletonTimeStamp).TotalMilliseconds > 1000)
-                {
-                    speechInteraction.fsm.Fire(SpeechInteraction.Command.FramesNotReady);
-                    lastSkeletonTimeStamp = DateTime.Now;
-                }
-            }
-            else
-            {
-                speechInteraction.fsm.Fire(SpeechInteraction.Command.FramesReady);
-            }
+           
 
             // prevent drawing outside of our render area
             drawingGroup.ClipGeometry = new RectangleGeometry(new Rect(0.0, 0.0, SkeletonHandler.RenderWidth, SkeletonHandler.RenderHeight));
