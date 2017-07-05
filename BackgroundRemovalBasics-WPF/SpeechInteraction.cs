@@ -220,13 +220,13 @@ namespace HPI.HCI.Bachelorproject1617.PhotoBooth
                     str = Hpi.Hci.Bachelorproject1617.PhotoBooth.Properties.Resources.hey_ist_da_jemand;
                     break;
                 case PersonRecognizedTransition:
-                    str = Hpi.Hci.Bachelorproject1617.PhotoBooth.Properties.Resources.woop_woop_erkenne_person;
+                    str = Hpi.Hci.Bachelorproject1617.PhotoBooth.Properties.Resources.okay_los_gehts_sag_wenn_du_bereit_bist;
                     break;
                 case PersonLeft:
                     str = Hpi.Hci.Bachelorproject1617.PhotoBooth.Properties.Resources.wo_bist_du_hin;
                     break;
                 case PersonRecognizedRepeat:
-                    str = Hpi.Hci.Bachelorproject1617.PhotoBooth.Properties.Resources.ich_habe_eine_person_erkannt;
+                    str = Hpi.Hci.Bachelorproject1617.PhotoBooth.Properties.Resources.saf_wenn_du_bereit_bist;
                     break;
                 case PictureTaking1:
                     str = Hpi.Hci.Bachelorproject1617.PhotoBooth.Properties.Resources.alles_klar_nehme_bild_auf;

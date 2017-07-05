@@ -926,17 +926,21 @@ namespace Hpi.Hci.Bachelorproject1617.PhotoBooth
                 ChooseSkeleton(); // Track this skeleton
                 foreach (Skeleton skel in skeletons)
                 {
+                    if (skel.TrackingId != null)
+                    {
+                        if (skel.TrackingState == SkeletonTrackingState.Tracked)
+                        {
+                            noSkelTracked = false;
+                            lastSkeletonTimeStamp = DateTime.Now;
+                        }
+                        else if (skel.TrackingState == SkeletonTrackingState.PositionOnly)
+                        {
+                            noSkelTracked = false;
+                            lastSkeletonTimeStamp = DateTime.Now;
+                        }
+                    }
 
-                    if (skel.TrackingState == SkeletonTrackingState.Tracked)
-                    {
-                        noSkelTracked = false;
-                        lastSkeletonTimeStamp = DateTime.Now;
-                    }
-                    else if (skel.TrackingState == SkeletonTrackingState.PositionOnly)
-                    {
-                        noSkelTracked = false;
-                        lastSkeletonTimeStamp = DateTime.Now;
-                    }
+                    
 
                 }
 

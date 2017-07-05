@@ -178,11 +178,29 @@ namespace Hpi.Hci.Bachelorproject1617.PhotoBooth.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized resource of type System.IO.UnmanagedMemoryStream similar to System.IO.MemoryStream.
+        /// </summary>
+        internal static System.IO.UnmanagedMemoryStream okay_los_gehts_sag_wenn_du_bereit_bist {
+            get {
+                return ResourceManager.GetStream("okay_los_gehts_sag_wenn_du_bereit_bist", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Press &apos;Screenshot&apos; to save a screenshot to your &apos;My Pictures&apos; directory..
         /// </summary>
         internal static string ReadyForScreenshot {
             get {
                 return ResourceManager.GetString("ReadyForScreenshot", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.IO.UnmanagedMemoryStream similar to System.IO.MemoryStream.
+        /// </summary>
+        internal static System.IO.UnmanagedMemoryStream saf_wenn_du_bereit_bist {
+            get {
+                return ResourceManager.GetStream("saf_wenn_du_bereit_bist", resourceCulture);
             }
         }
         
@@ -201,6 +219,15 @@ namespace Hpi.Hci.Bachelorproject1617.PhotoBooth.Properties {
         internal static string ScreenshotWriteSuccess {
             get {
                 return ResourceManager.GetString("ScreenshotWriteSuccess", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.IO.UnmanagedMemoryStream similar to System.IO.MemoryStream.
+        /// </summary>
+        internal static System.IO.UnmanagedMemoryStream sehr_gut_los_gehts {
+            get {
+                return ResourceManager.GetStream("sehr_gut_los_gehts", resourceCulture);
             }
         }
         

@@ -189,6 +189,9 @@
     <Content Include="Properties\hey_noch_da.wav" />
     <Content Include="Properties\hey_noch_da_soll_ich_nun_drucken.wav" />
     <Content Include="Properties\ich_habe_eine_person_erkannt.wav" />
+    <None Include="Properties\sehr_gut_los_gehts.wav" />
+    <None Include="Properties\saf_wenn_du_bereit_bist.wav" />
+    <None Include="Properties\okay_los_gehts_sag_wenn_du_bereit_bist.wav" />
     <Content Include="Properties\verbinde_mit_linepod.wav" />
     <Content Include="Properties\woop_woop_erkenne_person.wav" />
     <Content Include="Properties\wo_bist_du_hin.wav" />

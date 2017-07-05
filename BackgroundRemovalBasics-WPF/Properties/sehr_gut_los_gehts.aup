@@ -1,0 +1,28 @@
+<?xml version="1.0" standalone="no" ?>
+<!DOCTYPE project PUBLIC "-//audacityproject-1.3.0//DTD//EN" "http://audacity.sourceforge.net/xml/audacityproject-1.3.0.dtd" >
+<project xmlns="http://audacity.sourceforge.net/xml/" projname="sehr_gut_los_gehts_data" version="1.3.0" audacityversion="2.1.2" sel0="1.8634013605" sel1="1.8634013605" vpos="0" h="0.0058049887" zoom="86.1328125000" rate="44100.0" snapto="off" selectionformat="hh:mm:ss + milliseconds" frequencyformat="Hz" bandwidthformat="octaves">
+	<tags/>
+	<wavetrack name="Tonspur" channel="2" linked="0" mute="0" solo="0" height="150" minimized="0" isSelected="0" rate="44100" gain="1.0" pan="0.0"/>
+	<wavetrack name="Tonspur" channel="2" linked="0" mute="0" solo="0" height="150" minimized="0" isSelected="1" rate="44100" gain="1.0" pan="0.0">
+		<waveclip offset="-0.13000000">
+			<sequence maxsamples="262144" sampleformat="262159" numsamples="87909">
+				<waveblock start="0">
+					<simpleblockfile filename="e0000908.au" len="87909" min="-0.543501" max="0.595043" rms="0.073489"/>
+				</waveblock>
+			</sequence>
+			<envelope numpoints="1">
+				<controlpoint t="1.993378684807" val="1.000000000000"/>
+			</envelope>
+		</waveclip>
+		<waveclip offset="2.24653061">
+			<sequence maxsamples="262144" sampleformat="262159" numsamples="161112">
+				<waveblock start="0">
+					<simpleblockfile filename="e0000c53.au" len="161112" min="-0.586041" max="0.500074" rms="0.071664"/>
+				</waveblock>
+			</sequence>
+			<envelope numpoints="1">
+				<controlpoint t="0.000000000000" val="1.000000000000"/>
+			</envelope>
+		</waveclip>
+	</wavetrack>
+</project>

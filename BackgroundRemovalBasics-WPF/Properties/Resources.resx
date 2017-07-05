@@ -175,4 +175,13 @@
   <data name="wo_bist_du_hin" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>wo_bist_du_hin.wav;System.IO.MemoryStream, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
+  <data name="sehr_gut_los_gehts" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>sehr_gut_los_gehts.wav;System.IO.MemoryStream, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="saf_wenn_du_bereit_bist" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>saf_wenn_du_bereit_bist.wav;System.IO.MemoryStream, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="okay_los_gehts_sag_wenn_du_bereit_bist" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>okay_los_gehts_sag_wenn_du_bereit_bist.wav;System.IO.MemoryStream, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
 </root>
