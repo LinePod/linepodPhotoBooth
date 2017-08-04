@@ -141,7 +141,6 @@ namespace Hpi.Hci.Bachelorproject1617.PhotoBooth
         public MainWindow()
         {
             this.InitializeComponent();
-
             // initialize the sensor chooser and UI
             this.sensorChooser = new KinectSensorChooser();
             this.sensorChooserUi.KinectSensorChooser = this.sensorChooser;
@@ -396,7 +395,7 @@ namespace Hpi.Hci.Bachelorproject1617.PhotoBooth
 
 
 
-            var path = "Z:\\Daten\\Bachelorprojekt1617\\Kinect\\potrace-1.14.win64\\result.bmp";
+            var path = "..\\..\\..\\potrace-1.14.win64\\result.bmp";
             // write the new file to disk
 
             try
@@ -421,13 +420,13 @@ namespace Hpi.Hci.Bachelorproject1617.PhotoBooth
         //start external program potrace to trace the image, later read the content of the output-file
         private String GenerateOutlineSVGFromBitmap(String bmpPath)
         {
-            String OutputPath = "Z:\\Daten\\Bachelorprojekt1617\\Kinect\\potrace-1.14.win64\\result" + DateTime.Now.ToString("yyyy-MM-dd-HH-mm-ss") + ".svg";
+            String OutputPath = "..\\..\\..\\potrace-1.14.win64\\result" + DateTime.Now.ToString("yyyy-MM-dd-HH-mm-ss") + ".svg";
             Console.WriteLine(OutputPath);
             Process potrace = new Process
             {
                 StartInfo = new ProcessStartInfo
                 {
-                    FileName = "Z:\\Daten\\Bachelorprojekt1617\\Kinect\\potrace-1.14.win64\\potrace.exe",
+                    FileName = "..\\..\\..\\potrace-1.14.win64\\potrace.exe",
                     Arguments = bmpPath + " -s -u 1 -o " + OutputPath, //SVG // if svg should be saved: -o Z:\\Daten\\Bachelorprojekt1617\\Kinect\\potrace-1.14.win64\\result.svg --fillcolor #FFFFFF 
                     RedirectStandardInput = true,
                     RedirectStandardOutput = true,
