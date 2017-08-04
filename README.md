@@ -1,4 +1,4 @@
-# linespacePhotoBooth
+# Linepod Photo Booth
 
 <img src="photobooth_screenshot.png" align="left" width="1000" >
 
