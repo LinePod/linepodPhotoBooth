@@ -413,7 +413,7 @@ namespace Hpi.Hci.Bachelorproject1617.PhotoBooth
 
             //Bitmap bmp = BmpFromByteArray(pixelData, backgroundRemovedFrame.Width, backgroundRemovedFrame.Height);
             String svgOutlineString = GenerateOutlineSVGFromBitmap(path);
-            Console.WriteLine("before adding frame");
+            svgImage = svgOutlineString;
             AddSVGFrame(svgOutlineString);
 
         }
@@ -439,31 +439,13 @@ namespace Hpi.Hci.Bachelorproject1617.PhotoBooth
                 EnableRaisingEvents = false
             };
 
-            StringBuilder svgBuilder = new StringBuilder();
-            potrace.OutputDataReceived += (object sender2, DataReceivedEventArgs e2) =>
-            {
-                svgBuilder.AppendLine(e2.Data);
-            };
-            if (true)
-            {
-                potrace.ErrorDataReceived += (object sender2, DataReceivedEventArgs e2) =>
-                {
-                    Console.WriteLine("Error: " + e2.Data);
-                };
-            }
             potrace.Start();
             potrace.BeginOutputReadLine();
-            if (true)
-            {
-                potrace.BeginErrorReadLine();
-            }
-
-            BinaryWriter writer = new BinaryWriter(potrace.StandardInput.BaseStream);
+           
 
             potrace.StandardInput.WriteLine(); //Without this line the input to Potrace won't go through.
             potrace.WaitForExit();
             String svgString = File.ReadAllText(OutputPath);
-            svgImage = svgString;
             return svgString;
         }
 
